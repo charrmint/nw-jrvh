@@ -6,14 +6,10 @@
 <% if @children.any? %>
   <div class="tile-grid">
     <% @children.each do |child| %>
-      <div class="tile">
-        <h3><%= link_to child.full_name, child_profile_path(child), style: "text-decoration:none;color:inherit" %></h3>
-        <p>Born <%= child.date_of_birth.to_fs(:long) %></p>
-        <div style="display:flex;gap:16px;margin-top:14px;font-size:.88rem">
-          <%= link_to "View profile", child_profile_path(child) %>
-          <%= link_to "Edit basic info", edit_child_path(child) %>
-        </div>
-      </div>
+      <li>
+        <%= child.full_name %> — <%= child.date_of_birth&.to_fs(:long) || child.expected_due_date&.to_fs(:long) || "Birthdate unknown" %>
+        <%= link_to "Edit", edit_child_path(child) %>
+      </li>
     <% end %>
   </div>
 <% else %>

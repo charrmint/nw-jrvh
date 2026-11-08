@@ -28,4 +28,7 @@ Rails.application.routes.draw do
   get "home", to: "home#show", as: :home
   get "settings", to: "settings#show", as: :settings
   resources :daycare_applications, path: "applications", only: %i[ index show ]
+  resources :general_applications, except: %i[ show destroy ]
+  resource :settings, only: :show
+  resource :ymca_connection, only: %i[ create update destroy ]
 end

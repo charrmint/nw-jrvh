@@ -1,19 +1,29 @@
-<div class="card" style="max-width:520px">
-  <% if child.errors.any? %>
-    <div class="flash alert" role="alert"><%= child.errors.full_messages.to_sentence %></div>
-  <% end %>
-  <%= form_with model: child do |form| %>
-    <div class="field">
-      <%= form.label :full_name, "Full name" %>
-      <%= form.text_field :full_name, required: true, autofocus: true, autocomplete: "off", maxlength: 100 %>
-    </div>
-    <div class="field">
-      <%= form.label :date_of_birth, "Date of birth" %>
-      <%= form.date_field :date_of_birth, required: true %>
-    </div>
-    <div class="btn-row" style="margin-top:8px">
-      <%= form.submit (child.persisted? ? "Save changes" : "Add child"), class: "btn btn-primary" %>
-      <%= link_to "Cancel", (child.persisted? ? child_profile_path(child) : children_path), class: "btn btn-link" %>
-    </div>
-  <% end %>
-</div>
+<% if child.errors.any? %>
+  <ul style="color:red">
+    <% child.errors.full_messages.each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<%= form_with model: child do |form| %>
+  <%= form.label :first_name, "First name" %><br>
+  <%= form.text_field :first_name, required: true, autofocus: true, autocomplete: "given-name" %><br>
+
+  <%= form.label :last_name, "Last name" %><br>
+  <%= form.text_field :last_name, required: true, autocomplete: "family-name" %><br>
+
+  <%= form.label :date_of_birth, "Date of birth" %><br>
+  <%= form.date_field :date_of_birth %><br>
+
+  <%= form.check_box :birthdate_estimated %>
+  <%= form.label :birthdate_estimated, "This is an estimated birthdate" %><br>
+
+  <%= form.label :expected_due_date, "Expected due date (if unborn)" %><br>
+  <%= form.date_field :expected_due_date %><br>
+
+  <%= form.check_box :birthdate_unknown %>
+  <%= form.label :birthdate_unknown, "I'm adopting or fostering and don't know the child's birthdate yet" %><br>
+
+  <%= form.submit %>
+<% end %>

@@ -2,6 +2,8 @@ class User < ApplicationRecord
   has_secure_password
   has_many :sessions, dependent: :destroy
   has_many :children, dependent: :destroy
+  has_many :general_applications, dependent: :destroy
+  has_many :provider_connections, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
   normalizes :full_name, with: ->(n) { n.squish }

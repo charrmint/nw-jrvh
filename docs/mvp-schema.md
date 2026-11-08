@@ -1,6 +1,6 @@
 # OneKare MVP schema proposal
 
-This is the lean database design for the current MVP. Only `users` and `sessions` are implemented today; the remaining tables are proposed.
+This is the lean database design for the current MVP. `users`, `sessions`, `children`, and `daycares` already exist. Migrations for `general_applications` and `provider_connections` are now included. The per-daycare submission and tracking tables remain proposed. The exact upfront questions are in [mvp-upfront-questions.md](mvp-upfront-questions.md).
 
 ## Scope
 
@@ -17,6 +17,9 @@ This is the lean database design for the current MVP. Only `users` and `sessions
 erDiagram
   USERS ||--o{ SESSIONS : has
   USERS ||--o{ CHILDREN : owns
+  USERS ||--o{ GENERAL_APPLICATIONS : owns
+  USERS ||--o{ PROVIDER_CONNECTIONS : owns
+  CHILDREN ||--o| GENERAL_APPLICATIONS : has
   USERS ||--o{ APPLICATIONS : owns
   USERS ||--o{ CONNECTIONS : saves
   CHILDREN ||--o{ APPLICATIONS : selected_for
@@ -28,7 +31,7 @@ Every table has `id`; all except `application_events` have `created_at` and `upd
 
 ## users and sessions
 
-Already implemented.
+The existing identity and contact fields are implemented. The central general application holds the actual upfront answer set. Account registration fields can prefill it, but do not silently replace reviewed answers.
 
 | Table | Columns |
 | --- | --- |
@@ -42,10 +45,15 @@ Already implemented.
 ```text
 user_id
 full_name
+first_name
+last_name
 date_of_birth
+expected_due_date
+birthdate_unknown
+birthdate_estimated
 ```
 
-Each child belongs to one user. All child queries are scoped to the logged-in user.
+Each child belongs to one user. All child queries are scoped to the logged-in user. Children now support separate first and last names and a birthdate, expected due date, or an explicitly unknown birthdate. Existing child records with only `full_name` need a one-time name review; names are not split automatically. The central application refers to this child profile and does not copy its identity fields.
 
 ## daycares
 
@@ -89,7 +97,21 @@ support_status: unconfigured, enabled, needs_validation, paused
 
 `application_url` is saved only after verification. We never infer it from a daycare homepage.
 
-## applications
+## general_applications
+
+One central application per parent and child, created before selecting any daycare:
+
+```text
+user_id
+child_id
+answers                   JSONB, canonical question keys and typed choices
+created_at
+updated_at
+```
+
+The unique `(user_id, child_id)` index prevents duplicate general applications for the same child. The form asks provider-neutral questions upfront. Provider configuration later selects and translates answers; uncollected provider-specific priority and marketing-SMS answers default to No in the MVP and must appear in the exact submission review. Eligibility answers such as catchment are never defaulted to Yes. A provider form change pauses automation if the existing answer set cannot cover a required non-defaultable field.
+
+## applications (proposed per-daycare submissions)
 
 One parent’s attempt to apply for one child at one daycare.
 
@@ -118,9 +140,13 @@ outcome: not_submitted, submitted, waitlist_request_sent, waitlisted, offer_rece
 outcome_source: automation, parent
 ```
 
-`form_data` is a snapshot of normalized parent, child and eligibility information. `prepared_content` is the exact form answer set or email draft shown to the parent. Editing a profile later does not alter a saved application snapshot.
+`form_data` is a snapshot of the completed general application and the selected child/daycare at the moment the parent chooses to apply. `prepared_content` is the exact form answer set or email draft shown to the parent. Editing the general application later does not silently alter an existing reviewed submission.
 
 Execution status and outcome are separate. For example, a Parkcrest request can be `completed` with outcome `waitlist_request_sent`; it becomes `waitlisted` only when the parent reports confirmation.
+
+## Normalization and review
+
+The general application form stores stable answer keys and validated choice values. A later daycare submission copies those values, applies the selected provider's saved field mapping, and presents the result for parent approval. The snapshot and mapping version are retained so future edits do not rewrite what was sent.
 
 ## application_events
 
@@ -128,11 +154,11 @@ Append-only status and activity history. Fields: `application_id`, `event_type`,
 
 `source` is `automation` or `parent`. Examples include `external_link_opened`, `mapping_changed`, `submitted`, `waitlist_request_sent`, and `outcome_reported`. Corrections create a new event rather than editing history.
 
-## connections
+## provider_connections and future mailbox connections
 
-One table holds YMCA login credentials and the parent’s connected mailbox. Its fields are `user_id`, `connection_type`, `provider_key`, `identifier`, `encrypted_secret`, `encrypted_metadata`, `status`, and `expires_at`.
+`provider_connections` stores one encrypted YMCA portal credential set per parent: `user_id`, `provider_key`, `username`, and `encrypted_password`. It is created from Settings and is separate from general application answers. The password is write-only in the UI and encrypted with a key derived from the Rails secret key base.
 
-`connection_type` is `provider_credentials` or `mailbox`. `encrypted_secret` stores either the saved provider password or mailbox refresh token. Secrets never appear in pages, logs, form data, events or AI prompts.
+A connected mailbox remains future work for Parkcrest sending. Its OAuth token should be stored separately from provider passwords. Secrets never appear in pages, logs, form data, events or AI prompts.
 
 ## Mappings and automatic updates
 
@@ -160,4 +186,4 @@ If no complete mapping is available, set the daycare to `needs_validation` or `p
 
 Add provider/centre/program tables, shared platform configuration, application revisions, approvals, execution attempts, browser sessions, handoff records and outbound-message records only when the MVP proves this lean model insufficient.
 
-Migration order: `children`, `daycares`, `applications`, `application_events`, then `connections`.
+Migration order: existing `children` and `daycares`, then child birthdate options, `general_applications`, `provider_connections`, followed by per-daycare `applications`, `application_events`, and mailbox connections.

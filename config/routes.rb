@@ -18,4 +18,5 @@ Rails.application.routes.draw do
   resource :session, only: %i[ create destroy ]
 
   resources :passwords, param: :token, only: %i[ new create edit update ]
+  resources :children, only: %i[ index new create edit update ]
 end

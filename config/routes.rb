@@ -24,10 +24,14 @@ Rails.application.routes.draw do
   end
   resources :general_applications, only: %i[ index new create edit update ]
   resource :ymca_connection, only: %i[ create update destroy ]
+  get "gmail/connect", to: "gmail_connections#new", as: :connect_gmail
+  get "gmail/oauth/callback", to: "gmail_connections#create", as: :gmail_oauth_callback
+  delete "gmail/connection", to: "gmail_connections#destroy", as: :gmail_connection
   resources :daycares, only: %i[ index show ]
   resources :daycares, only: [] do
     resource :ymca_experiment, only: :create
     resource :beyond_care_experiment, only: :create
+    resource :parkcrest_application, only: :create
   end
 
   # Front-end-only screens

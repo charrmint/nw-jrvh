@@ -56,6 +56,18 @@ class Daycare < ApplicationRecord
     beyond_care_integration_settings.present?
   end
 
+  def parkcrest_integration_settings
+    settings = integration_settings.deep_stringify_keys
+    return unless support_status == "enabled" && application_type == "email_only"
+    return unless settings["provider_key"] == "parkcrest"
+
+    settings
+  end
+
+  def parkcrest_enabled?
+    parkcrest_integration_settings.present?
+  end
+
   def self.search(name: nil, city: nil, postal_code: nil)
     result = all
     result = result.where("name ILIKE ?", "%#{sanitize_sql_like(name.strip)}%") if name.present?

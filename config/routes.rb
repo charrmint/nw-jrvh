@@ -25,6 +25,9 @@ Rails.application.routes.draw do
   resources :general_applications, only: %i[ index new create edit update ]
   resource :ymca_connection, only: %i[ create update destroy ]
   resources :daycares, only: %i[ index show ]
+  resources :daycares, only: [] do
+    resource :ymca_experiment, only: :create
+  end
 
   # Front-end-only screens
   get "home", to: "home#show", as: :home

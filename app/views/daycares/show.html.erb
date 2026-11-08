@@ -64,10 +64,25 @@
       <% end %>
 
       <div style="margin-top:12px">
-        <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed">
-          Apply with OneKare<%= child ? " for #{child.full_name.split.first}" : "" %>
-        </button>
-        <p class="muted small" style="margin:8px 0 0">One-click applications are coming soon.</p>
+        <% if @daycare.ymca_enabled? %>
+          <%= form_with url: daycare_ymca_experiment_path(@daycare), method: :post do |form| %>
+            <% if child %>
+              <%= form.hidden_field :child_id, value: child.id %>
+            <% else %>
+              <%= form.label :child_id, "Child" %>
+              <%= form.select :child_id,
+                onekare_user.children.order(:first_name, :last_name).map { |candidate| [ candidate.full_name, candidate.id ] },
+                { prompt: "Choose a child" }, required: true %>
+            <% end %>
+            <%= form.submit "Apply with OneKare#{child ? " for #{child.first_name}" : ""}", class: "btn btn-primary" %>
+          <% end %>
+          <p class="muted small" style="margin:8px 0 0">Prepares the YMCA application and stops at Review without submitting.</p>
+        <% else %>
+          <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed">
+            Apply with OneKare<%= child ? " for #{child.full_name.split.first}" : "" %>
+          </button>
+          <p class="muted small" style="margin:8px 0 0">One-click applications are coming soon.</p>
+        <% end %>
       </div>
     </div>
   </aside>

@@ -4,6 +4,8 @@ class Daycare < ApplicationRecord
   APPLICATION_TYPES = %w[ external public_form authenticated_portal email_only ].freeze
   SUPPORT_STATUSES = %w[ unconfigured enabled needs_validation paused ].freeze
 
+  has_many :daycare_applications, dependent: :restrict_with_error
+
   normalizes :name, :city, with: ->(value) { value.squish }
   normalizes :postal_code, with: ->(value) { value.squish.upcase }
 
@@ -24,6 +26,17 @@ class Daycare < ApplicationRecord
 
   def application_link_url
     safe_http_url(application_url)
+  end
+
+  def ymca_integration_settings
+    settings = integration_settings.deep_stringify_keys
+    return unless support_status == "enabled" && settings["provider_key"] == "ymca_bc"
+
+    settings
+  end
+
+  def ymca_enabled?
+    ymca_integration_settings.present?
   end
 
   def self.search(name: nil, city: nil, postal_code: nil)

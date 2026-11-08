@@ -1,6 +1,7 @@
 class Child < ApplicationRecord
   belongs_to :user
   has_one :general_application, dependent: :destroy
+  has_many :daycare_applications, dependent: :restrict_with_error
 
   normalizes :full_name, with: ->(name) { name.squish }
   normalizes :first_name, :last_name, with: ->(name) { name.squish }

@@ -120,16 +120,44 @@ Verify that `psql --version` works after installing the PostgreSQL client. The e
 
 ## Environment variables
 
-Create local environment values for development. Never commit tokens, database credentials, or real family information.
+Rails loads `.env.development.local` automatically using `dotenv-rails`. This file is ignored by Git and is not loaded in the test environment. `.env.example` contains only placeholders and can be committed.
 
-```dotenv
-DATABASE_URL=postgresql://...
-DATABRICKS_HOST=https://your-workspace-host
-DATABRICKS_TOKEN=your-secret-token
-DATABRICKS_MODEL_ENDPOINT=your-model-endpoint
+From the repository root, install the dependencies from the existing Gemfile (do not run `rails new` again):
+
+```bash
+bundle install
 ```
 
-Use fictional parent and child data during development and demos.
+Copy `.env.example` to `.env.development.local` **only if your local file does not already exist**. On macOS:
+
+```bash
+cp -n .env.example .env.development.local
+```
+
+On Windows PowerShell:
+
+```powershell
+if (!(Test-Path .env.development.local)) {
+  Copy-Item .env.example .env.development.local
+}
+```
+
+Open `.env.development.local`, replace the sample URL with your dedicated Lakebase **development** connection URL, and remove the leading `#` from `DATABASE_URL`. Keep the value single-quoted and preserve the connection's SSL options. Do not paste real credentials into `.env.example`, `config/database.yml`, or Git. The Databricks model variables are optional until that integration is implemented.
+
+Existing shell environment variables take precedence over the file. If you previously exported an old URL, run `unset DATABASE_URL` on macOS or `Remove-Item Env:DATABASE_URL -ErrorAction SilentlyContinue` in PowerShell before starting Rails.
+
+Start the app:
+
+```bash
+bin/rails db:prepare
+bin/rails server
+```
+
+On Windows, use `ruby bin/rails db:prepare` and `ruby bin/rails server`. Open http://localhost:3000. Restart Rails after changing environment values. `db:prepare` applies schema changes, so use a dedicated development database. A local PostgreSQL server is unnecessary when using Lakebase; the `pg` gem still requires PostgreSQL client libraries. If its native build cannot locate them on macOS, run `bundle config set --local build.pg --with-pg-config="$(brew --prefix libpq)/bin/pg_config"` and retry `bundle install`.
+
+Configure a separate test database before running database tests; never point tests at the development or production database. Use `.env.test.local` for test-specific connection settings, and do not export a development `DATABASE_URL` into the test process. Production receives its environment variables from the deployment environment, not these local files.
+
+Use fictional parent and child data during development and demos. Lakebase credentials may expire; if authentication stops working, update the local URL with fresh credentials and restart Rails.
 
 ## Verify the local toolchain
 

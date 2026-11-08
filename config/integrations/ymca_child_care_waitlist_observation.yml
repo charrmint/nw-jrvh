@@ -1,0 +1,146 @@
+scope:
+  provider_key: ymca_bc
+  workflow_key: child_care_waitlist
+  external_location_id: a3lJQ000001BjHPYA0
+  external_program_id: a3CJQ00000OFo8L2AT
+allowed_default_policy:
+  provider_specific_priority: "No"
+  marketing_sms: "No"
+steps:
+  your_child:
+    inventory:
+      step: your_child
+      fields:
+        - { key: child.first_name, type: text, required: true }
+        - { key: child.last_name, type: text, required: true }
+        - { key: child.birthdate_or_estimated, type: date, required: true }
+        - { key: child.birthdate_unknown, type: checkbox, required: false }
+        - key: school.catchment.cascade_or_inman
+          type: select
+          required: true
+          choices: ["Yes", "No"]
+        - key: child.support_required
+          type: select
+          required: true
+          choices: ["Yes", "No"]
+        - key: school.name
+          type: select
+          required: true
+          choices_count: 132
+          relevant_choices: [School Age Care Not Required, School Registration Not Yet Confirmed]
+        - { key: care.preferred_start_date, type: date, required: true, constraint: today_or_later }
+        - key: care.preferred_schedule
+          type: select
+          required: true
+          choices:
+            - Any Available Option
+            - Early Years | 2 Days Part Time (T/Th)
+            - Early Years | 3 Days Part Time (M/W/F)
+            - Early Years | 5 Days Full Time
+            - School Age | AM + PM | 2 Days Part Time (T/Th)
+            - School Age | AM + PM | 3 Days Part Time (M/W/F)
+            - School Age | AM + PM | 5 Days Full Time
+            - School Age | AM only | 5 Days Full Time
+            - School Age | PM only | 5 Days Full Time
+    mapping:
+      child.first_name: child.first_name
+      child.last_name: child.last_name
+      child.birthdate_or_estimated: child.date_of_birth
+      child.birthdate_unknown: child.birthdate_unknown
+      school.catchment.cascade_or_inman: school.catchment
+      child.support_required: child.support_required
+      school.name: school.name
+      care.preferred_start_date: care.preferred_start_date
+      care.preferred_schedule: care.preferred_schedule
+    defaults: {}
+    warnings: []
+  your_family:
+    inventory:
+      step: your_family
+      fields:
+        - key: parent.second_guardian
+          type: select
+          required: false
+          choices: [None, Add a new parent or guardian]
+    mapping:
+      parent.second_guardian: parent.second_guardian_name
+    defaults: {}
+    warnings:
+      - Discarded Databricks priority and SMS defaults because those controls were not observed on this step.
+  your_family_guardian_details:
+    inventory:
+      step: your_family_guardian_details
+      fields:
+        - { key: parent.first_name, type: text, required: true }
+        - { key: parent.last_name, type: text, required: true }
+        - { key: parent.email, type: email, required: true }
+        - { key: parent.birthdate, type: date, required: true }
+        - { key: parent.gender, type: select, required: false, choices: [Female, Male, Non-Binary, Other, Prefer not to answer, Unknown, X] }
+        - { key: parent.business_phone, type: tel, required: false }
+        - { key: parent.home_phone, type: tel, required: false }
+        - { key: parent.mobile_phone, type: tel, required: false }
+        - { key: parent.other_phone, type: tel, required: false }
+        - { key: parent.marketing_sms, type: checkbox, required: false }
+        - { key: parent.mailing_street, type: text, required: true }
+        - { key: parent.mailing_city, type: text, required: true }
+        - { key: parent.mailing_province, type: text, required: true }
+        - { key: parent.mailing_postal_code, type: text, required: true }
+        - { key: parent.mailing_country, type: text, required: true }
+        - { key: priority.ymca_bc_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.vch_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.phsa_hospital_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.una_employee_or_resident, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.surrey_city_hall_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.broadway_tech_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.northern_health_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.bc_hydro_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.school_district_60_employee, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.northern_lights_college, type: select, required: true, choices: ["Yes", "No"] }
+        - { key: priority.city_of_kamloops_employee, type: select, required: true, choices: ["Yes", "No"] }
+    mapping:
+      parent.first_name: parent.first_name
+      parent.last_name: parent.last_name
+      parent.email: parent.email
+      parent.birthdate: parent.date_of_birth
+      parent.mobile_phone: parent.local_phone
+      parent.mailing_street: parent.mailing_street
+      parent.mailing_city: parent.mailing_city
+      parent.mailing_province: parent.mailing_province
+      parent.mailing_postal_code: parent.mailing_postal_code
+      parent.mailing_country: parent.mailing_country
+    defaults:
+      parent.marketing_sms: "No"
+      priority.ymca_bc_employee: "No"
+      priority.vch_employee: "No"
+      priority.phsa_hospital_employee: "No"
+      priority.una_employee_or_resident: "No"
+      priority.surrey_city_hall_employee: "No"
+      priority.broadway_tech_employee: "No"
+      priority.northern_health_employee: "No"
+      priority.bc_hydro_employee: "No"
+      priority.school_district_60_employee: "No"
+      priority.northern_lights_college: "No"
+      priority.city_of_kamloops_employee: "No"
+    warnings:
+      - Narrowed Databricks phone mapping to Mobile phone only.
+      - Did not translate generic affiliations into YMCA branded eligibility claims.
+  locations:
+    inventory:
+      step: locations
+      fields:
+        - key: program_type
+          type: button_group
+          required: true
+          choices: [Infant Toddler · Ages 0–3, 3 to 5 Years · Ages 3–5, Preschool · Ages 3–5, School Age · Ages 4–13]
+        - key: centres
+          type: multi_select_map_list
+          required: true
+          selected_limit: 5
+          observed_available_count: 28
+    mapping:
+      program_type: daycare.external_program_id
+      centres: daycare.external_location_id
+    defaults: {}
+    warnings:
+      - Discarded Databricks priority and SMS defaults because those controls were not observed on this step.
+

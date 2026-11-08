@@ -1,0 +1,73 @@
+<% content_for :title, "Settings — OneKare" %>
+<div class="page-head">
+  <div><h1>Settings</h1><p>Your account and the services OneKare uses to apply for you.</p></div>
+</div>
+
+<div class="card" style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+  <span class="avatar" style="margin:0"><%= user_initials %></span>
+  <div style="flex:1;min-width:200px">
+    <h2 style="margin-bottom:2px"><%= onekare_user.full_name %></h2>
+    <p class="muted small" style="margin:0"><%= onekare_user.email_address %></p>
+  </div>
+  <%= button_to "Log out", logout_target, method: :delete, class: "btn btn-outline" %>
+</div>
+
+<h2 style="margin:32px 0 6px">Connected services</h2>
+<p class="muted" style="margin:0 0 18px">Connect these once so OneKare can submit applications on your behalf. Nothing is sent without you pressing Apply.</p>
+
+<div class="grid-2" style="align-items:start">
+  <%# ---------- YMCA ---------- %>
+  <section class="card lift">
+    <div class="card-head" style="margin-bottom:6px">
+      <h3>YMCA BC</h3>
+      <% if @ymca_connection.persisted? %><span class="badge ready">Connected</span><% else %><span class="badge review">Not connected</span><% end %>
+    </div>
+    <p class="muted small" style="margin-top:0">Your YMCA child care portal login. Used for Beach YMCA and other centres on the same portal.</p>
+
+    <% if @ymca_connection.errors.any? %>
+      <div class="flash alert" role="alert"><span><%= @ymca_connection.errors.full_messages.to_sentence %></span></div>
+    <% end %>
+    <% if @ymca_connection.persisted? %>
+      <p class="small">Saved for <strong><%= @ymca_connection.username %></strong>. The password is stored securely and never shown.</p>
+    <% end %>
+
+    <%= form_with model: @ymca_connection, url: ymca_connection_path, method: @ymca_connection.persisted? ? :patch : :post do |form| %>
+      <div class="field">
+        <%= form.label :username, "Portal username or email" %>
+        <%= form.text_field :username, required: true, autocomplete: "username" %>
+      </div>
+      <div class="field">
+        <%= form.label :password, @ymca_connection.persisted? ? "New password (leave blank to keep current)" : "Portal password" %>
+        <%= form.password_field :password, required: !@ymca_connection.persisted?, autocomplete: "new-password" %>
+      </div>
+      <%= form.submit @ymca_connection.persisted? ? "Update YMCA account" : "Save YMCA account", class: "btn btn-primary" %>
+    <% end %>
+
+    <% if @ymca_connection.persisted? %>
+      <div style="margin-top:12px">
+        <%= button_to "Remove saved login", ymca_connection_path, method: :delete, class: "btn-link small", data: { turbo_confirm: "Remove saved YMCA credentials?" } %>
+      </div>
+    <% end %>
+  </section>
+
+  <%# ---------- Gmail ---------- %>
+  <section class="card lift">
+    <div class="card-head" style="margin-bottom:6px">
+      <h3>Gmail sending</h3>
+      <% if @mailbox_connection %><span class="badge ready">Connected</span><% else %><span class="badge review">Not connected</span><% end %>
+    </div>
+    <p class="muted small" style="margin-top:0">Lets OneKare email a waitlist request (Parkcrest) from your own Gmail after you click Apply. OneKare can only send mail — it cannot read your inbox, and your Gmail password is never collected.</p>
+
+    <% if @mailbox_connection %>
+      <p class="small">Connected <%= time_ago_in_words(@mailbox_connection.connected_at) %> ago.</p>
+      <%= button_to "Disconnect Gmail", gmail_connection_path, method: :delete, class: "btn btn-outline", data: { turbo_confirm: "Disconnect Gmail from OneKare?" } %>
+    <% else %>
+      <%= link_to "Connect Gmail", connect_gmail_path, class: "btn btn-primary", data: { turbo: false } %>
+    <% end %>
+  </section>
+</div>
+
+<div class="notice-box" style="margin-top:26px">
+  <strong>Which daycares need what?</strong>
+  Beach YMCA uses the YMCA connection. Parkcrest uses Gmail. Beyond Care needs no connection.
+</div>

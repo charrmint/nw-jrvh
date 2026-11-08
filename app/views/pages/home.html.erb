@@ -1,0 +1,18 @@
+<h1>OneKare</h1>
+
+<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+
+<% if authenticated? %>
+  <p>Signed in as <%= Current.user.full_name %></p>
+  <p>
+    <%= link_to "Find a daycare", daycares_path %> |
+    <%= link_to "Children", children_path %> |
+    <%= link_to "General applications", general_applications_path %> |
+    <%= link_to "Settings", settings_path %>
+  </p>
+  <%= button_to "Log out", session_path, method: :delete %>
+<% else %>
+  <%= link_to "Sign up", sign_up_path %> |
+  <%= link_to "Log in", login_path %>
+<% end %>

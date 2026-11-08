@@ -1,0 +1,4 @@
+<% content_for :title, "Add a child — OneKare" %>
+<%= link_to "← Children", children_path, class: "back-link" %>
+<div class="page-head"><div><h1>Add a child</h1><p>Start with the basics. You can fill in the rest of the profile later.</p></div></div>
+<%= render "form", child: @child %>

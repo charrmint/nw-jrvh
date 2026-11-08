@@ -1,0 +1,31 @@
+<% content_for :title, "Children — OneKare" %>
+<div class="page-head">
+  <div><h1>Children</h1><p>Reusable profiles you can use for any daycare application.</p></div>
+  <%= link_to "Add a child", new_child_path, class: "btn btn-primary" %>
+</div>
+<% if @children.any? %>
+  <div class="tile-grid">
+    <% @children.each do |child| %>
+      <div class="tile">
+        <div class="avatar"><%= (child.first_name.presence || child.full_name).to_s[0].to_s.upcase %></div>
+        <h3><%= child.full_name %></h3>
+        <p>
+          <% if child.date_of_birth %>Born <%= child.date_of_birth.to_fs(:long) %>
+          <% elsif child.expected_due_date %>Due <%= child.expected_due_date.to_fs(:long) %>
+          <% else %>Birthdate unknown<% end %>
+        </p>
+        <div style="display:flex;gap:16px;margin-top:16px;font-size:.88rem">
+          <% application_path = child.general_application ? edit_general_application_path(child.general_application) : new_general_application_path(child_id: child.id) %>
+          <%= link_to "Edit child info", application_path %>
+          <%= link_to "Edit basic info", edit_child_path(child) %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+<% else %>
+  <div class="empty">
+    <h3 style="margin-bottom:6px">No child profiles yet</h3>
+    <p style="margin:0 0 16px">Add your child once and reuse their profile for every application.</p>
+    <%= link_to "Add a child", new_child_path, class: "btn btn-primary" %>
+  </div>
+<% end %>

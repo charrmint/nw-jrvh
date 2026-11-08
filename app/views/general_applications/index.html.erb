@@ -1,0 +1,23 @@
+<% content_for :title, "General applications | OneKare" %>
+
+<h1>General applications</h1>
+<p>Complete one application per child. You can then use it when applying to a supported daycare.</p>
+
+<% if Current.user.children.empty? %>
+  <p><%= link_to "Add a child first", new_child_path %></p>
+<% else %>
+  <% available_children = Current.user.children.where.not(id: @applications.map(&:child_id)) %>
+  <% if available_children.any? %>
+    <p><%= link_to "Create a general application", new_general_application_path %></p>
+  <% end %>
+<% end %>
+
+<% @applications.each do |application| %>
+  <article>
+    <h2><%= application.child.full_name %></h2>
+    <p>Updated <%= application.updated_at.to_date.to_fs(:long) %></p>
+    <%= link_to "Edit application", edit_general_application_path(application) %>
+  </article>
+<% end %>
+
+<p><%= link_to "Back to home", root_path %></p>

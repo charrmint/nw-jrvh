@@ -1,0 +1,59 @@
+<% first = @child.full_name.split.first %>
+<% content_for :title, "#{first}’s profile — OneKare" %>
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+  <div class="segmented">
+    <%= link_to "Saved profile", child_profile_path(@child), class: "active" %>
+    <%= link_to "Edit basic info", edit_child_path(@child) %>
+  </div>
+</div>
+
+<%= link_to "← Children", children_path, class: "back-link" %>
+<div class="page-head">
+  <div><h1><%= first %>’s profile</h1><p>Reusable information for daycare applications</p></div>
+  <%= render "shared/progress", percent: ProfileSchema.completeness_percent %>
+</div>
+
+<nav class="tabs" aria-label="Profile sections">
+  <% ProfileSchema::TABS.each do |key, label| %>
+    <%= link_to label, child_profile_path(@child, tab: key), class: ("active" if key == @tab) %>
+  <% end %>
+</nav>
+
+<% if @tab == "overview" %>
+  <% cards = [
+    [ "Basic information", edit_child_path(@child), [ [ "Full name", @child.full_name ], [ "Date of birth", @child.date_of_birth&.to_fs(:long) ], [ "Pronouns", nil ] ] ],
+    [ "Care preferences", edit_child_profile_path(@child, section: "care"), [ [ "Care type", nil ], [ "Start date", nil ], [ "Schedule", nil ], [ "Hours", nil ] ] ],
+    [ "Health and safety", edit_child_profile_path(@child, section: "health_contacts"), [ [ "Allergies", nil ], [ "Medication", nil ], [ "Immunization", nil ], [ "Doctor", nil ] ] ],
+    [ "Food and feeding", edit_child_profile_path(@child, section: "feeding"), [ [ "Dietary needs", nil ], [ "Food sensitivities", nil ], [ "Feeding support", nil ], [ "Favourite foods", nil ] ] ]
+  ] %>
+  <div class="grid-2">
+    <% cards.each do |title, edit_path, rows| %>
+      <section>
+        <div class="card-head"><h2><%= title %></h2><%= link_to "Edit", edit_path %></div>
+        <dl class="kv">
+          <% rows.each do |label, value| %>
+            <dt><%= label %>:</dt>
+            <dd class="<%= 'missing' if value.nil? %>"><%= value || "Not provided" %></dd>
+          <% end %>
+        </dl>
+        <hr class="divider">
+      </section>
+    <% end %>
+  </div>
+<% else %>
+  <div class="grid-2">
+    <% ProfileSchema.for_tab(@tab).each do |section| %>
+      <section>
+        <div class="card-head"><h2><%= section.title %></h2><%= link_to "Edit", edit_child_profile_path(@child, section: section.key) %></div>
+        <% if section.intro %><p class="muted small" style="margin-top:0"><%= section.intro %></p><% end %>
+        <dl class="kv">
+          <% section.fields.reject(&:show_if).first(4).each do |f| %>
+            <dt><%= f.label.truncate(34) %></dt><dd class="missing">Not provided</dd>
+          <% end %>
+        </dl>
+        <p class="muted small"><%= section.fields.size %> questions in this section</p>
+        <hr class="divider">
+      </section>
+    <% end %>
+  </div>
+<% end %>

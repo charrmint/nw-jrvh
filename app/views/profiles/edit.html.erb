@@ -1,0 +1,8 @@
+<% first = @child.full_name.split.first %>
+<% content_for :title, "Edit #{first}’s profile — OneKare" %>
+<%= link_to "← #{first}’s profile", child_profile_path(@child), class: "back-link" %>
+<div class="page-head">
+  <div><h1><%= first %>’s profile</h1><p>Save progress anytime and come back later.</p></div>
+  <%= render "shared/progress", percent: ProfileSchema.completeness_percent %>
+</div>
+<%= render "profiles/form", section: @section, child: @child %>

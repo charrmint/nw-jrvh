@@ -1,0 +1,19 @@
+<% content_for :title, "Log in — OneKare" %>
+<div style="text-align:center;margin-top:40px"><%= link_to root_path, class: "brand", style: "display:inline-flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.3rem;text-decoration:none;color:var(--ink)" do %><%= image_tag "onekare-tree-dark.png", alt: "", class: "brand-tree" %> OneKare<% end %></div>
+<div class="auth-card" style="margin-top:24px">
+  <h1>Welcome back</h1>
+  <%= form_with url: session_path do |form| %>
+    <div class="field">
+      <%= form.label :email_address, "Email address" %>
+      <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "you@example.com", value: params[:email_address] %>
+    </div>
+    <div class="field">
+      <%= form.label :password, "Password" %>
+      <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %>
+    </div>
+    <%= form.submit "Log in", style: "width:100%" %>
+  <% end %>
+  <p class="small" style="margin:18px 0 0;text-align:center">
+    <%= link_to "Forgot password?", new_password_path %> · <%= link_to "Create an account", sign_up_path %>
+  </p>
+</div>

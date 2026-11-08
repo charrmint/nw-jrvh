@@ -1,0 +1,57 @@
+<% content_for :title, "Find a daycare — OneKare" %>
+<% children = onekare_user.children.order(:full_name) %>
+<div class="page-head"><div><h1>Find a daycare</h1><p>Search licensed care near you for the child you choose.</p></div></div>
+
+<div class="form-layout" style="grid-template-columns: 300px 1fr">
+  <%= form_with url: daycares_path, method: :get, class: "card" do |form| %>
+    <div class="field">
+      <%= form.label :child_id, "Searching for" %>
+      <% if children.any? %>
+        <%= form.select :child_id, children.map { |c| [ c.full_name, c.id ] }, { selected: params[:child_id] } %>
+      <% else %>
+        <p class="muted small" style="margin:0"><%= link_to "Add a child", new_child_path %> to search for them.</p>
+      <% end %>
+    </div>
+    <div class="field">
+      <%= form.label :name, "Daycare name" %>
+      <%= form.search_field :name, value: params[:name] %>
+    </div>
+    <div class="field">
+      <%= form.label :city, "City" %>
+      <%= form.search_field :city, value: params[:city] %>
+    </div>
+    <div class="field">
+      <%= form.label :postal_code, "Postal code" %>
+      <%= form.search_field :postal_code, value: params[:postal_code], placeholder: "e.g. V6B 1A1" %>
+    </div>
+    <%= form.submit "Search", class: "btn btn-primary", style: "width:100%" %>
+    <% if params.values_at(:name, :city, :postal_code).any?(&:present?) %>
+      <p style="text-align:center;margin:12px 0 0" class="small"><%= link_to "Clear filters", daycares_path(child_id: params[:child_id]) %></p>
+    <% end %>
+  <% end %>
+
+  <div>
+    <p class="muted small" style="margin-top:0">Showing up to 100 daycares.</p>
+    <% if @daycares.any? %>
+      <% @daycares.each do |daycare| %>
+        <div class="card lift">
+          <h3><%= link_to daycare.name, daycare_path(daycare, child_id: params[:child_id]), style: "text-decoration:none;color:inherit" %></h3>
+          <p class="muted small" style="margin:4px 0 0"><%= [ daycare.address, daycare.city, daycare.postal_code ].compact_blank.join(", ") %></p>
+          <% if daycare.care_types.any? %>
+            <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap">
+              <% daycare.care_types.pluck("label").each do |label| %><span class="badge review"><%= label %></span><% end %>
+            </div>
+          <% end %>
+          <% site_url, site_label, _official = daycare_site_link(daycare) %>
+          <div style="margin-top:14px;display:flex;gap:20px;flex-wrap:wrap;font-size:.88rem">
+            <%= link_to "#{site_label} ↗", site_url, target: "_blank", rel: "noopener noreferrer" %>
+            <% if daycare.phone.present? %><%= link_to daycare.phone, "tel:#{daycare.phone}" %><% end %>
+            <%= link_to "View details", daycare_path(daycare, child_id: params[:child_id]) %>
+          </div>
+        </div>
+      <% end %>
+    <% else %>
+      <div class="empty">No daycares matched your search.</div>
+    <% end %>
+  </div>
+</div>

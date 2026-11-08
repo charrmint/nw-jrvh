@@ -1,0 +1,160 @@
+# This file is auto-generated from the current state of the database. Instead
+# of editing this file, please use the migrations feature of Active Record to
+# incrementally modify your database, and then regenerate this schema definition.
+#
+# This file is the source Rails uses to define your schema when running `bin/rails
+# db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
+#
+# It's strongly recommended that you check this file into your version control system.
+
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_180000) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
+  create_table "children", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "full_name", null: false
+    t.date "date_of_birth"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.date "expected_due_date"
+    t.boolean "birthdate_unknown", default: false, null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.boolean "birthdate_estimated", default: false, null: false
+    t.index ["user_id"], name: "index_children_on_user_id"
+  end
+
+  create_table "daycare_applications", force: :cascade do |t|
+    t.bigint "child_id", null: false
+    t.bigint "daycare_id", null: false
+    t.string "status", null: false
+    t.datetime "submitted_at"
+    t.string "provider_application_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.string "apply_request_id"
+    t.jsonb "prepared_content", default: {}, null: false
+    t.datetime "sent_at"
+    t.string "last_error"
+    t.index ["apply_request_id"], name: "index_daycare_applications_on_apply_request_id", unique: true
+    t.index ["child_id", "daycare_id"], name: "index_daycare_applications_on_child_id_and_daycare_id", unique: true
+    t.index ["child_id"], name: "index_daycare_applications_on_child_id"
+    t.index ["daycare_id"], name: "index_daycare_applications_on_daycare_id"
+  end
+
+  create_table "daycares", force: :cascade do |t|
+    t.string "source_facility_id", null: false
+    t.string "name", null: false
+    t.string "address"
+    t.string "city", null: false
+    t.string "postal_code", null: false
+    t.decimal "latitude", precision: 10, scale: 7
+    t.decimal "longitude", precision: 10, scale: 7
+    t.string "website_url"
+    t.string "application_url"
+    t.string "application_email"
+    t.string "phone"
+    t.jsonb "care_types", default: [], null: false
+    t.jsonb "services", default: {}, null: false
+    t.jsonb "reported_vacancies", default: {}, null: false
+    t.datetime "vacancy_updated_at"
+    t.string "application_type", default: "external", null: false
+    t.string "support_status", default: "unconfigured", null: false
+    t.jsonb "integration_settings", default: {}, null: false
+    t.integer "integration_version"
+    t.datetime "mapping_updated_at"
+    t.text "mapping_failure_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["application_type"], name: "index_daycares_on_application_type"
+    t.index ["city"], name: "index_daycares_on_city"
+    t.index ["postal_code"], name: "index_daycares_on_postal_code"
+    t.index ["source_facility_id"], name: "index_daycares_on_source_facility_id", unique: true
+    t.index ["support_status"], name: "index_daycares_on_support_status"
+  end
+
+  create_table "general_applications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "child_id", null: false
+    t.jsonb "answers", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["child_id"], name: "index_general_applications_on_child_id"
+    t.index ["user_id", "child_id"], name: "index_general_applications_on_user_id_and_child_id", unique: true
+    t.index ["user_id"], name: "index_general_applications_on_user_id"
+  end
+
+  create_table "integration_mapping_versions", force: :cascade do |t|
+    t.string "provider_key", null: false
+    t.string "workflow_key", null: false
+    t.string "step_key", null: false
+    t.string "external_location_id"
+    t.string "external_program_id"
+    t.integer "version", null: false
+    t.string "inventory_fingerprint", null: false
+    t.jsonb "inventory", default: {}, null: false
+    t.jsonb "mapping", default: {}, null: false
+    t.jsonb "defaults", default: {}, null: false
+    t.jsonb "validation_warnings", default: [], null: false
+    t.boolean "current", default: true, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["provider_key", "workflow_key", "step_key", "external_location_id", "external_program_id", "version"], name: "index_integration_mapping_versions_on_scope_and_version", unique: true, nulls_not_distinct: true
+    t.index ["provider_key", "workflow_key", "step_key", "external_location_id", "external_program_id"], name: "index_current_integration_mapping_versions_on_scope", unique: true, where: "current", nulls_not_distinct: true
+  end
+
+  create_table "mailbox_connections", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.text "encrypted_access_token", null: false
+    t.text "encrypted_refresh_token", null: false
+    t.datetime "access_token_expires_at", null: false
+    t.string "scope", null: false
+    t.datetime "connected_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_mailbox_connections_on_user_id", unique: true
+  end
+
+  create_table "provider_connections", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "provider_key", null: false
+    t.string "username", null: false
+    t.text "encrypted_password", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "provider_key"], name: "index_provider_connections_on_user_id_and_provider_key", unique: true
+    t.index ["user_id"], name: "index_provider_connections_on_user_id"
+  end
+
+  create_table "sessions", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "ip_address"
+    t.string "user_agent"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_sessions_on_user_id"
+  end
+
+  create_table "users", force: :cascade do |t|
+    t.string "email_address", null: false
+    t.string "password_digest", null: false
+    t.string "full_name", null: false
+    t.string "phone_number", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email_address"], name: "index_users_on_email_address", unique: true
+  end
+
+  add_foreign_key "children", "users"
+  add_foreign_key "daycare_applications", "children"
+  add_foreign_key "daycare_applications", "daycares"
+  add_foreign_key "general_applications", "children"
+  add_foreign_key "general_applications", "users"
+  add_foreign_key "mailbox_connections", "users"
+  add_foreign_key "provider_connections", "users"
+  add_foreign_key "sessions", "users"
+end

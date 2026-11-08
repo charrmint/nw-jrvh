@@ -1,0 +1,9 @@
+<div class="person" data-repeater-item>
+  <div class="person-head">
+    <span><%= section.title.sub("Parents and guardians", "Guardian").singularize %> <%= number == "+" ? "" : number %></span>
+    <button type="button" class="btn-link small" data-action="repeater#remove">Remove</button>
+  </div>
+  <% section.fields.each do |field| %>
+    <%= profile_field(field, name: "profile[#{section.key}][#{index}][#{field.id}]") %>
+  <% end %>
+</div>

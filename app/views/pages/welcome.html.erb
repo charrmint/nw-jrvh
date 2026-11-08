@@ -1,0 +1,43 @@
+<% content_for :title, "OneKare — one profile, every daycare application" %>
+<header class="public-nav">
+  <%= link_to root_path, class: "brand" do %><%= image_tag "onekare-tree-dark.png", alt: "", class: "brand-tree" %> OneKare<% end %>
+  <div style="display:flex;gap:12px">
+    <%= link_to "Log in", login_target, class: "btn btn-outline" %>
+    <%= link_to "Sign up", signup_target, class: "btn btn-primary" %>
+  </div>
+</header>
+
+<section class="hero">
+  <div>
+    <span class="pill">Made for B.C. families</span>
+    <h1>One profile. <span class="hl">Every</span> daycare application.</h1>
+    <p>Tell us about your child once. OneKare finds nearby daycares and prepares each application for you to review and approve.</p>
+    <div class="btn-row" style="margin-top:0">
+      <%= link_to "Get started free", signup_target, class: "btn btn-primary btn-lg" %>
+      <%= link_to "Log in", login_target, class: "btn btn-outline btn-lg" %>
+    </div>
+  </div>
+
+  <div class="mock" aria-hidden="true">
+    <div class="mock-head"><span>Sample profile</span><span class="badge ready">78% complete</span></div>
+    <div class="progress"><span style="width:78%"></span></div>
+    <div class="mock-row"><span>Little Steps Daycare</span><span class="badge ready">Ready to review</span></div>
+    <div class="mock-row"><span>Bright Start Childcare</span><span class="badge missing">Missing information</span></div>
+    <div class="mock-row"><span>Cedar Grove Early Learning</span><span class="badge review">In review</span></div>
+    <div class="mock-chip">✓ You approve everything before it’s sent</div>
+  </div>
+</section>
+
+<section class="steps" data-controller="reveal">
+  <div class="step-card" data-reveal-item><div class="num">1</div><h3>Build a profile</h3><p>Answer the questions daycares ask, at your own pace. Save and come back anytime.</p></div>
+  <div class="step-card" data-reveal-item><div class="num">2</div><h3>Find nearby care</h3><p>Search local daycares and filter by name, city and postal code.</p></div>
+  <div class="step-card" data-reveal-item><div class="num">3</div><h3>Review and apply</h3><p>See exactly what will be sent to each daycare. Nothing is submitted without your approval.</p></div>
+</section>
+
+<section class="cta" data-controller="reveal">
+  <div data-reveal-item>
+    <h2>Stop filling in the same form again and again.</h2>
+    <p>Create your free account and build your child’s profile in a few minutes.</p>
+    <div class="btn-row"><%= link_to "Create an account", signup_target, class: "btn btn-light btn-lg" %></div>
+  </div>
+</section>

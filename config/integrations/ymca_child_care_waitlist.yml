@@ -1,0 +1,22 @@
+provider_key: ymca_bc
+workflow_key: child_care_waitlist
+start_url: https://mycommunity.bc.ymca.ca/s/find-child-care
+live_submit_enabled: true
+allowed_defaults:
+  provider_specific_priority: "No"
+  marketing_sms: "No"
+live_validation:
+  observed_on: "2026-11-08"
+  location:
+    id: a3lJQ000001BjHPYA0
+    name: Beach YMCA
+  program:
+    id: a3CJQ00000OFo8L2AT
+    name: Beach YMCA Infant Toddler
+  stages:
+    - your_child
+    - your_family
+    - your_family_guardian_details
+    - locations
+    - review
+

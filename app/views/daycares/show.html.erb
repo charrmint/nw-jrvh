@@ -1,0 +1,165 @@
+<% content_for :title, "#{@daycare.name} — OneKare" %>
+<% child = params[:child_id].present? ? onekare_user.children.find_by(id: params[:child_id]) : nil %>
+<%= link_to "← Back to search", daycares_path(child_id: params[:child_id]), class: "back-link" %>
+<div class="page-head">
+  <div>
+    <h1><%= @daycare.name %></h1>
+    <p><%= [ @daycare.address, @daycare.city, @daycare.postal_code ].compact_blank.join(", ") %></p>
+  </div>
+  <% site_url, site_label, site_official = daycare_site_link(@daycare) %>
+  <%= link_to "#{site_label} ↗", site_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-outline" %>
+</div>
+
+<div class="detail-layout">
+  <div>
+    <div class="card">
+      <h2 style="margin-bottom:12px">Care types</h2>
+      <% if @daycare.care_types.any? %>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <% @daycare.care_types.each do |care_type| %><span class="badge review"><%= care_type["label"] %></span><% end %>
+        </div>
+      <% else %>
+        <p class="muted" style="margin:0">No care types reported.</p>
+      <% end %>
+    </div>
+
+    <div class="card">
+      <h2 style="margin-bottom:12px">Reported vacancies</h2>
+      <% available_vacancies = @daycare.reported_vacancies.values.select { |vacancy| vacancy["available"] } %>
+      <% if available_vacancies.any? %>
+        <ul style="margin:0;padding-left:20px"><% available_vacancies.each do |vacancy| %><li><%= vacancy["label"] %></li><% end %></ul>
+      <% else %>
+        <p class="muted" style="margin:0">No vacancies reported.</p>
+      <% end %>
+      <% if @daycare.vacancy_updated_at.present? %>
+        <p class="muted small" style="margin:10px 0 0">Vacancy information updated <%= @daycare.vacancy_updated_at.to_date.to_fs(:long) %>.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <aside>
+    <div class="card">
+      <h3 style="margin-bottom:12px">Contact</h3>
+      <dl class="kv" style="grid-template-columns: 70px 1fr">
+        <dt>Phone</dt><dd><%= @daycare.phone.present? ? link_to(@daycare.phone, "tel:#{@daycare.phone}") : "Not provided" %></dd>
+        <dt>Email</dt><dd><%= @daycare.contact_email.present? ? mail_to(@daycare.contact_email) : "Not provided" %></dd>
+        <dt>Website</dt>
+        <dd>
+          <%= link_to "#{site_label} ↗", site_url, target: "_blank", rel: "noopener noreferrer" %>
+          <% unless site_official %><br><span class="muted small">No website listed for this daycare</span><% end %>
+        </dd>
+      </dl>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-bottom:12px">Apply</h3>
+      <% if @daycare.support_status == "unconfigured" %>
+        <% if site_official %>
+          <%= link_to "Visit daycare website", site_url, target: "_blank", rel: "noopener noreferrer", class: "btn btn-outline" %>
+        <% elsif @daycare.contact_email.present? %>
+          <%= mail_to @daycare.contact_email, "Email this daycare", class: "btn btn-outline" %>
+        <% elsif @daycare.phone.present? %>
+          <%= link_to "Call this daycare", "tel:#{@daycare.phone}", class: "btn btn-outline" %>
+        <% else %>
+          <p class="muted small" style="margin:0">This daycare has not provided a website or contact method.</p>
+        <% end %>
+      <% elsif @daycare.application_link_url.present? %>
+        <%= link_to "Open verified application page", @daycare.application_link_url, target: "_blank", rel: "noopener", class: "btn btn-outline" %>
+      <% end %>
+
+      <div style="margin-top:12px">
+        <% if @daycare.ymca_enabled? || @daycare.beyond_care_enabled? %>
+          <% existing_application = child && child.daycare_applications.find_by(daycare: @daycare) %>
+          <% if existing_application && existing_application.status != "submission_failed" %>
+            <% polling = %w[pending sending].include?(existing_application.status) %>
+            <div data-application-status
+              <% if polling %>
+                data-controller="application-status"
+                data-application-status-url-value="<%= daycare_path(@daycare, child_id: child.id) %>"
+                data-application-status-interval-value="2000"
+              <% end %>>
+            <% label = existing_application.status == "submitted" ? "Application submitted" : existing_application.status.humanize %>
+            <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed"><%= label %></button>
+            <p class="muted small" style="margin:8px 0 0">
+              <% case existing_application.status %>
+              <% when "pending", "sending" %>
+                OneKare is submitting this application. This status updates automatically.
+              <% when "submitted" %>
+                The provider displayed a submission confirmation. This does not confirm waitlist membership.
+              <% when "submission_uncertain" %>
+                Submission may have succeeded, but confirmation was not observed. Check with the provider before applying again.
+              <% else %>
+                The application stopped without a confirmed submission. No automatic retry will occur.
+              <% end %>
+            </p>
+            </div>
+          <% else %>
+            <%= form_with url: daycare_browser_application_path(@daycare), method: :post do |form| %>
+              <% if child %>
+                <%= form.hidden_field :child_id, value: child.id %>
+              <% else %>
+                <%= form.label :child_id, "Child" %>
+                <%= form.select :child_id,
+                  onekare_user.children.order(:first_name, :last_name).map { |candidate| [ candidate.full_name, candidate.id ] },
+                  { prompt: "Choose a child" }, required: true %>
+              <% end %>
+              <%= form.submit "Apply automatically#{child ? " for #{child.first_name}" : ""}", class: "btn btn-primary" %>
+            <% end %>
+            <p class="muted small" style="margin:8px 0 0">Clicking submits this application to the provider. There is no second approval screen.</p>
+            <% if existing_application&.status == "submission_failed" %>
+              <p class="muted small">The previous attempt stopped before final submission. Clicking again starts a new attempt.</p>
+            <% end %>
+          <% end %>
+        <% elsif @daycare.beyond_care_experiment_available? %>
+          <p class="muted small" style="margin:8px 0 0">Beyond Care applications are not enabled yet.</p>
+        <% elsif @daycare.parkcrest_enabled? %>
+          <% existing_application = child && child.daycare_applications.find_by(daycare: @daycare) %>
+          <% if existing_application %>
+            <% polling = %w[pending sending].include?(existing_application.status) %>
+            <div data-application-status
+              <% if polling %>
+                data-controller="application-status"
+                data-application-status-url-value="<%= daycare_path(@daycare, child_id: child.id) %>"
+                data-application-status-interval-value="1000"
+              <% end %>>
+              <% label = existing_application.status == "waitlist_request_sent" ? "Waitlist request sent" : existing_application.status.humanize %>
+              <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed"><%= label %></button>
+              <p class="muted small" style="margin:8px 0 0">
+                <% case existing_application.status %>
+                <% when "pending", "sending" %>
+                  Sending through Gmail. This status updates automatically.
+                <% when "waitlist_request_sent" %>
+                  Gmail accepted the send request. This is not confirmation of waitlist membership.
+                <% when "send_failed" %>
+                  Gmail rejected the send request. It was not retried automatically.
+                <% when "send_uncertain" %>
+                  The send result is uncertain. It was not retried to avoid a duplicate.
+                <% else %>
+                  This request will not be sent again automatically, preventing duplicate email.
+                <% end %>
+              </p>
+            </div>
+          <% else %>
+            <%= form_with url: daycare_parkcrest_application_path(@daycare), method: :post do |form| %>
+              <% if child %>
+                <%= form.hidden_field :child_id, value: child.id %>
+              <% else %>
+                <%= form.label :child_id, "Child" %>
+                <%= form.select :child_id,
+                  onekare_user.children.order(:first_name, :last_name).map { |candidate| [ candidate.full_name, candidate.id ] },
+                  { prompt: "Choose a child" }, required: true %>
+              <% end %>
+              <%= form.submit "Apply automatically#{child ? " for #{child.first_name}" : ""}", class: "btn btn-primary" %>
+            <% end %>
+            <p class="muted small" style="margin:8px 0 0">Clicking sends the request immediately through your connected Gmail account. There is no second approval screen.</p>
+          <% end %>
+        <% else %>
+          <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed">
+            Apply with OneKare<%= child ? " for #{child.full_name.split.first}" : "" %>
+          </button>
+          <p class="muted small" style="margin:8px 0 0">One-click applications are coming soon.</p>
+        <% end %>
+      </div>
+    </div>
+  </aside>
+</div>

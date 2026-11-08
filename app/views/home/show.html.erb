@@ -1,0 +1,70 @@
+<% content_for :title, "Home — OneKare" %>
+<% hour = Time.current.in_time_zone("Pacific Time (US & Canada)").hour %>
+<% greeting = hour < 12 ? "Good morning" : (hour < 18 ? "Good afternoon" : "Good evening") %>
+<div class="page-head">
+  <div>
+    <h1><%= greeting %><%= ", #{user_first_name}" if user_first_name.present? %></h1>
+    <p>Here’s where your daycare applications stand.</p>
+  </div>
+</div>
+
+<% in_progress = @applications.count { |a| application_in_progress?(a.status) } %>
+<% attention = @applications.count { |a| %w[submission_failed submission_uncertain send_failed send_uncertain].include?(a.status) } %>
+
+<%# Refreshes itself while an application is still being sent. %>
+<div data-application-status
+  <% if in_progress > 0 %>
+    data-controller="application-status"
+    data-application-status-url-value="<%= home_path %>"
+    data-application-status-interval-value="2000"
+  <% end %>>
+
+  <div class="stat-row">
+    <div class="stat"><strong><%= @children.size %></strong><span><%= "Child".pluralize(@children.size) %> on your account</span></div>
+    <div class="stat"><strong><%= @applications.size %></strong><span><%= "Application".pluralize(@applications.size) %> so far</span></div>
+    <div class="stat"><strong><%= attention %></strong><span>Need your attention</span></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Current applications</h2>
+      <% if in_progress > 0 %><span class="live"><span class="live-dot"></span>Updating live</span><% else %><%= link_to "View all →", daycare_applications_path %><% end %>
+    </div>
+    <% if @applications.any? %>
+      <table class="list">
+        <thead><tr><th>Daycare</th><th>Child</th><th>Status</th><th>Updated</th></tr></thead>
+        <tbody>
+          <% @applications.first(5).each do |application| %>
+            <tr>
+              <td><%= link_to application.daycare.name, daycare_application_path(application) %></td>
+              <td><%= application.child.full_name %></td>
+              <td>
+                <span class="badge <%= status_class(application.status) %>"><%= status_label(application.status) %></span>
+                <% if application_in_progress?(application.status) %><span class="spinner" aria-label="In progress"></span><% end %>
+              </td>
+              <td class="muted"><%= l(application.updated_at, format: :short) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% else %>
+      <div class="empty" style="border:0;background:none;padding:28px 12px">No applications yet. Search for a daycare to get started.</div>
+    <% end %>
+  </div>
+</div>
+
+<h2 style="margin:34px 0 16px">Quick actions</h2>
+<div class="tile-grid">
+  <%= link_to daycares_path, class: "tile" do %>
+    <span class="arrow">→</span><span class="tile-icon"><%= nav_icon(:search) %></span>
+    <h3>Search daycares</h3><p>Find care near you and pick which child you’re searching for.</p>
+  <% end %>
+  <%= link_to fill_in_info_path, class: "tile" do %>
+    <span class="arrow">→</span><span class="tile-icon"><%= nav_icon(:face) %></span>
+    <h3>Child information</h3><p>Fill in your child’s details once and reuse them for every application.</p>
+  <% end %>
+  <%= link_to daycare_applications_path, class: "tile" do %>
+    <span class="arrow">→</span><span class="tile-icon"><%= nav_icon(:clipboard) %></span>
+    <h3>Applications</h3><p>Track what’s missing, ready to review, or already sent.</p>
+  <% end %>
+</div>

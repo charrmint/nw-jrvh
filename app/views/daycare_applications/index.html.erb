@@ -1,0 +1,61 @@
+<% content_for :title, "Applications — OneKare" %>
+<% total = @applications.size %>
+<% in_progress = @applications.count { |a| application_in_progress?(a.status) } %>
+<% done = @applications.count { |a| %w[submitted waitlist_request_sent].include?(a.status) } %>
+<% attention = @applications.count { |a| %w[submission_failed submission_uncertain send_failed send_uncertain].include?(a.status) } %>
+
+<div class="page-head">
+  <div><h1>Applications</h1><p>Your daycare applications and email requests.</p></div>
+  <%= link_to "Find a daycare", daycares_path, class: "btn btn-primary" %>
+</div>
+
+<%# Refreshes itself every few seconds while anything is still being sent. %>
+<div data-application-status
+  <% if in_progress > 0 %>
+    data-controller="application-status"
+    data-application-status-url-value="<%= daycare_applications_path %>"
+    data-application-status-interval-value="2000"
+  <% end %>>
+
+  <div class="stat-row">
+    <div class="stat"><strong><%= total %></strong><span><%= "Application".pluralize(total) %> in total</span></div>
+    <div class="stat"><strong><%= in_progress %></strong><span>Being sent right now</span></div>
+    <div class="stat"><strong><%= attention %></strong><span>Need your attention</span></div>
+  </div>
+
+  <div class="card">
+    <% if @applications.empty? %>
+      <div class="empty" style="border:0;background:none;padding:36px 12px">
+        <h3 style="margin-bottom:6px">No applications yet</h3>
+        <p style="margin:0 0 16px">Find a daycare, pick your child and apply. Progress shows up here.</p>
+        <%= link_to "Find a daycare", daycares_path, class: "btn btn-primary" %>
+      </div>
+    <% else %>
+      <div class="card-head">
+        <h2>Your applications</h2>
+        <% if in_progress > 0 %><span class="live"><span class="live-dot"></span>Updating live</span><% end %>
+      </div>
+      <table class="list">
+        <thead><tr><th>Daycare</th><th>Child</th><th>Status</th><th>Updated</th></tr></thead>
+        <tbody>
+          <% @applications.each do |application| %>
+            <tr>
+              <td>
+                <div class="row-id">
+                  <span class="mini-avatar"><%= application.daycare.name.to_s.delete('"')[0].to_s.upcase %></span>
+                  <%= link_to application.daycare.name, daycare_application_path(application) %>
+                </div>
+              </td>
+              <td><%= application.child.full_name %></td>
+              <td>
+                <span class="badge <%= status_class(application.status) %>"><%= status_label(application.status) %></span>
+                <% if application_in_progress?(application.status) %><span class="spinner" aria-label="In progress"></span><% end %>
+              </td>
+              <td class="muted"><%= l(application.updated_at, format: :short) %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    <% end %>
+  </div>
+</div>

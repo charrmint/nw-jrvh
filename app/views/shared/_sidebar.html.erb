@@ -1,0 +1,22 @@
+<nav class="sidebar" aria-label="Main">
+  <%= link_to home_path, class: "logo-tree", "data-tip": "OneKare", "aria-label": "OneKare home" do %><%= image_tag "onekare-tree-white.png", alt: "OneKare" %><% end %>
+
+  <div class="nav-group">
+    <% OnekareHelper::NAV_ITEMS.each do |item| %>
+      <%= link_to public_send(item[:path]),
+            class: "nav-btn #{'active' if nav_active?(item[:key])}",
+            "data-tip": item[:label], "aria-label": item[:label],
+            "aria-current": (nav_active?(item[:key]) ? "page" : nil) do %>
+        <%= nav_icon(item[:icon]) %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <div class="nav-bottom">
+    <div class="nav-user" data-tip="<%= onekare_user.full_name %>"><%= user_initials %></div>
+    <%= button_to logout_target, method: :delete, class: "nav-btn nav-logout", form_class: "nav-form",
+          data: { tip: "Log out" }, "aria-label": "Log out" do %>
+      <%= nav_icon(:logout) %>
+    <% end %>
+  </div>
+</nav>

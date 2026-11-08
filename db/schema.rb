@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_030000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_040000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,37 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_030000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["user_id"], name: "index_children_on_user_id"
+  end
+
+  create_table "daycares", force: :cascade do |t|
+    t.string "source_facility_id", null: false
+    t.string "name", null: false
+    t.string "address"
+    t.string "city", null: false
+    t.string "postal_code", null: false
+    t.decimal "latitude", precision: 10, scale: 7
+    t.decimal "longitude", precision: 10, scale: 7
+    t.string "website_url"
+    t.string "application_url"
+    t.string "application_email"
+    t.string "phone"
+    t.jsonb "care_types", default: [], null: false
+    t.jsonb "services", default: {}, null: false
+    t.jsonb "reported_vacancies", default: {}, null: false
+    t.datetime "vacancy_updated_at"
+    t.string "application_type", default: "external", null: false
+    t.string "support_status", default: "unconfigured", null: false
+    t.jsonb "integration_settings", default: {}, null: false
+    t.integer "integration_version"
+    t.datetime "mapping_updated_at"
+    t.text "mapping_failure_reason"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["application_type"], name: "index_daycares_on_application_type"
+    t.index ["city"], name: "index_daycares_on_city"
+    t.index ["postal_code"], name: "index_daycares_on_postal_code"
+    t.index ["source_facility_id"], name: "index_daycares_on_source_facility_id", unique: true
+    t.index ["support_status"], name: "index_daycares_on_support_status"
   end
 
   create_table "sessions", force: :cascade do |t|

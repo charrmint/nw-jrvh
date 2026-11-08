@@ -13,6 +13,7 @@ module OnekareHelper
     clipboard: '<rect x="6" y="4" width="12" height="17" rx="2"/><path d="M9 4h6v3H9z"/><path d="M9 12h6M9 16h4"/>',
     search:    '<circle cx="11" cy="11" r="7"/><path d="M21 21l-5-5"/>',
     face:      '<circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r=".6"/><circle cx="15" cy="10" r=".6"/><path d="M8.5 14.5c1 1.4 2.2 2 3.5 2s2.5-.6 3.5-2"/>',
+    logout:    '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
     gear:      '<circle cx="12" cy="12" r="3"/><path d="M19 12a7 7 0 0 0-.1-1.2l2-1.5-2-3.4-2.3.9a7 7 0 0 0-2-1.2L14 3h-4l-.6 2.6a7 7 0 0 0-2 1.2l-2.3-.9-2 3.4 2 1.5A7 7 0 0 0 5 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-.9a7 7 0 0 0 2 1.2L10 21h4l.6-2.6a7 7 0 0 0 2-1.2l2.3.9 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/>'
   }.freeze
 
@@ -55,6 +56,17 @@ module OnekareHelper
   def login_target  = login_path
   def signup_target = sign_up_path
   def logout_target = session_path
+
+  STATUS_LABELS = {
+    "pending" => "Queued", "sending" => "Sending",
+    "submitted" => "Submitted", "waitlist_request_sent" => "Waitlist request sent",
+    "submission_failed" => "Not submitted", "submission_uncertain" => "Check with provider",
+    "send_failed" => "Email rejected", "send_uncertain" => "Send uncertain"
+  }.freeze
+
+  def status_label(status) = STATUS_LABELS.fetch(status.to_s, status.to_s.humanize)
+
+  def application_in_progress?(status) = %w[pending sending].include?(status.to_s)
 
   def status_class(status)
     {

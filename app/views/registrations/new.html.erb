@@ -1,5 +1,5 @@
 <% content_for :title, "Sign up — OneKare" %>
-<div style="text-align:center;margin-top:40px"><%= link_to root_path, class: "brand", style: "display:inline-flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.3rem;text-decoration:none;color:var(--ink)" do %><span class="logo-mark" style="margin:0;background:var(--sidebar);color:#fff;width:36px;height:36px;font-size:1.05rem">O</span> OneKare<% end %></div>
+<div style="text-align:center;margin-top:40px"><%= link_to root_path, class: "brand", style: "display:inline-flex;align-items:center;gap:10px;font-family:var(--serif);font-size:1.3rem;text-decoration:none;color:var(--ink)" do %><%= image_tag "onekare-tree-dark.png", alt: "", class: "brand-tree" %> OneKare<% end %></div>
 <div class="auth-card" style="margin-top:24px">
   <h1>Create your account</h1>
   <% if @user.errors.any? %>

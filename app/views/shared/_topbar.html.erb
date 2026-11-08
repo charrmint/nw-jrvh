@@ -1,9 +1,5 @@
 <div class="topbar">
-  <details class="avatar-menu">
-    <summary aria-label="Account menu"><%= user_initials %></summary>
-    <div class="menu">
-      <%= link_to "Settings", settings_path, class: "btn-link", style: "display:block;padding:8px 10px" %>
-      <%= button_to "Sign out", logout_target, method: :delete, class: "btn-link" %>
-    </div>
-  </details>
+  <%= link_to settings_path, class: "user-chip", title: "Settings" do %>
+    <span class="dot"><%= user_initials %></span><%= user_first_name %>
+  <% end %>
 </div>

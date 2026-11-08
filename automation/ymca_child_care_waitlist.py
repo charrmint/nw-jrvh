@@ -56,6 +56,7 @@ class YmcaChildCareWaitlist:
         self.safe_stage = "initialized"
         self.child_profile_action: str | None = None
         self.observed_choices: dict[str, list[str]] = {}
+        self.safe_diagnostic: list[dict[str, str | None]] | None = None
 
     async def login(self, *, username: str, password: str) -> None:
         self.safe_stage = "login_navigation"
@@ -142,7 +143,7 @@ class YmcaChildCareWaitlist:
         if self._age(snapshot["child.date_of_birth"]) < 5:
             school = "School Age Care Not Required"
         self.safe_stage = "child_school"
-        await self._choose("Which school does your child", school, inventory_key="school.name")
+        await self._choose_school(school)
         self.safe_stage = "child_start_date"
         await self.page.get_by_label("Preferred start date", exact=False).first.fill(
             self._portal_date(snapshot["care.preferred_start_date"])
@@ -166,9 +167,30 @@ class YmcaChildCareWaitlist:
             raise
 
     async def _create_child(self, snapshot: dict[str, Any]) -> None:
-        await self.page.get_by_role("button", name="Add a child").click()
-        await self.page.get_by_label("First name", exact=True).fill(snapshot["child.first_name"])
-        await self.page.get_by_label("Last name", exact=True).fill(snapshot["child.last_name"])
+        self.safe_stage = "child_create_open"
+        add_child = self.page.get_by_role("button", name="Add a child", exact=True)
+        await add_child.click()
+        new_child = self.page.get_by_text("New child", exact=True)
+        try:
+            await new_child.wait_for(timeout=3_000)
+        except PlaywrightTimeoutError:
+            await add_child.evaluate("element => element.click()")
+            await new_child.wait_for()
+        self.safe_stage = "child_create_first_name"
+        first_name = self.page.get_by_label("First name", exact=False)
+        if await first_name.count() == 0:
+            self.safe_diagnostic = await self.page.locator("input:visible").evaluate_all(
+                """elements => elements.map(element => ({
+                  type: element.getAttribute('type'),
+                  name: element.getAttribute('name'),
+                  aria_label: element.getAttribute('aria-label')
+                }))"""
+            )
+            raise RuntimeError("Visible child first-name input is not label-associated")
+        await first_name.fill(snapshot["child.first_name"])
+        self.safe_stage = "child_create_last_name"
+        await self.page.get_by_label("Last name", exact=False).fill(snapshot["child.last_name"])
+        self.safe_stage = "child_create_birthdate"
         await self.page.get_by_label("Birthdate or estimated birthdate", exact=False).fill(
             self._portal_date(snapshot["child.date_of_birth"])
         )
@@ -464,6 +486,19 @@ class YmcaChildCareWaitlist:
             )
             self.observed_choices[inventory_key] = observed or [option]
         await choice.first.click()
+
+    async def _choose_school(self, preferred_school: str) -> None:
+        combobox = self.page.get_by_label("Which school does your child", exact=False).first
+        await combobox.click()
+        preferred = self.page.get_by_role("option", name=preferred_school, exact=True)
+        if await preferred.count() > 0:
+            selected = preferred.first
+        else:
+            selected = self.page.get_by_role(
+                "option", name="School Age Care Not Required", exact=True
+            ).first
+        self.observed_choices["school.name"] = [await selected.inner_text()]
+        await selected.click()
 
     async def _priority_comboboxes(self):
         boxes = self.page.get_by_role("combobox")

@@ -64,7 +64,7 @@ namespace :ymca do
 
     safe_result = result.slice(
       "status", "reached_review", "child_profile_action", "target", "error_type", "error_stage", "error_detail",
-      "error_location", "diagnostic_data"
+      "error_location", "error_controls", "diagnostic_data"
     )
     puts JSON.pretty_generate(safe_result)
     raise("YMCA experiment did not reach review (#{result["error_type"] || "unknown error"})") unless result["reached_review"]

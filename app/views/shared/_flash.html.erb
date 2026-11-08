@@ -1,2 +1,12 @@
-<% if notice.present? %><div class="flash" role="status"><%= notice %></div><% end %>
-<% if alert.present? %><div class="flash alert" role="alert"><%= alert %></div><% end %>
+<% if notice.present? %>
+  <div class="flash" role="status" data-controller="flash" data-flash-delay-value="6000">
+    <span><%= notice %></span>
+    <button type="button" class="flash-close" data-action="flash#close" aria-label="Dismiss">×</button>
+  </div>
+<% end %>
+<% if alert.present? %>
+  <div class="flash alert" role="alert" data-controller="flash">
+    <span><%= alert %></span>
+    <button type="button" class="flash-close" data-action="flash#close" aria-label="Dismiss">×</button>
+  </div>
+<% end %>

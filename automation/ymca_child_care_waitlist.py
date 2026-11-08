@@ -107,7 +107,9 @@ class YmcaChildCareWaitlist:
         await join_button.click(force=True)
         self.safe_stage = f"waitlist_step:{urlparse(self.page.url).path}"
         try:
-            await self.page.get_by_text("Who are you waitlisting?", exact=False).wait_for(timeout=30_000)
+            await self.page.get_by_role(
+                "heading", name="Join Child Care Waitlist", exact=True
+            ).first.wait_for(timeout=30_000)
         except PlaywrightTimeoutError:
             self.safe_stage = f"waitlist_step_timeout:{self.page.url}"
             if self.debug_screenshot:
@@ -168,14 +170,15 @@ class YmcaChildCareWaitlist:
 
     async def _create_child(self, snapshot: dict[str, Any]) -> None:
         self.safe_stage = "child_create_open"
-        add_child = self.page.get_by_role("button", name="Add a child", exact=True)
-        await add_child.click()
         new_child = self.page.get_by_text("New child", exact=True)
-        try:
-            await new_child.wait_for(timeout=3_000)
-        except PlaywrightTimeoutError:
-            await add_child.evaluate("element => element.click()")
-            await new_child.wait_for()
+        if not await new_child.is_visible():
+            add_child = self.page.get_by_role("button", name="Add a child", exact=True)
+            await add_child.click()
+            try:
+                await new_child.wait_for(timeout=3_000)
+            except PlaywrightTimeoutError:
+                await add_child.evaluate("element => element.click()")
+                await new_child.wait_for()
         self.safe_stage = "child_create_first_name"
         first_name = self.page.get_by_label("First name", exact=False)
         if await first_name.count() == 0:

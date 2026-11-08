@@ -1,0 +1,51 @@
+<% content_for :title, "Applications — OneKare" %>
+<div class="page-head">
+  <div><h1>Applications</h1><p>Your active daycare applications.</p></div>
+  <div style="display:flex;gap:16px;align-items:center">
+    <span class="muted small"><%= pluralize(@applications.size, "application") %></span>
+    <%= link_to "Start new application", daycares_path, class: "btn btn-primary" %>
+  </div>
+</div>
+
+<div class="card">
+  <table class="list">
+    <thead><tr><th>Daycare</th><th>Child</th><th>Requested care</th><th>Status</th><th>Updated</th></tr></thead>
+    <tbody>
+      <% @applications.each do |a| %>
+        <tr>
+          <td><%= link_to a[:daycare], daycare_applications_path(open: a[:id]) %></td>
+          <td><%= a[:child] %></td><td><%= a[:care] %></td>
+          <td><span class="badge <%= status_class(a[:status]) %>"><%= a[:status] %></span></td>
+          <td class="muted"><%= a[:updated] %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<% if @open %>
+  <%= link_to "", daycare_applications_path, class: "drawer-scrim", "aria-label": "Close" %>
+  <aside class="drawer" aria-label="Application preview">
+    <%= link_to "×", daycare_applications_path, class: "close", "aria-label": "Close" %>
+    <h2><%= @open[:daycare] %></h2>
+    <p class="muted small"><%= @open[:child] %> · <%= @open[:care] %></p>
+    <hr class="divider">
+    <div class="eyebrow">Application status</div>
+    <p><span class="badge <%= status_class(@open[:status]) %>"><%= @open[:status] %></span></p>
+    <% if @open[:needs].any? %>
+      <h3 style="font-size:.95rem">Needed from you</h3>
+      <ul><% @open[:needs].each do |n| %><li><%= n %></li><% end %></ul>
+    <% end %>
+    <hr class="divider">
+    <h3 style="font-size:.95rem">Application timeline</h3>
+    <ul class="timeline">
+      <% (DemoData::BEFORE_SUBMISSION + DemoData::AFTER_SUBMISSION).each_with_index do |step, i| %>
+        <li class="<%= 'later' if i > @open[:timeline_current] %>"><%= step %></li>
+      <% end %>
+    </ul>
+    <div class="btn-row" style="flex-direction:column;align-items:flex-start">
+      <%= link_to "Continue application", daycare_application_path(@open[:id]), class: "btn btn-primary" %>
+      <%= link_to "Expand details", daycare_application_path(@open[:id]), class: "btn btn-outline" %>
+    </div>
+  </aside>
+<% end %>

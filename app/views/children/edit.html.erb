@@ -1,6 +1,4 @@
-<h1>Edit child</h1>
-
+<% content_for :title, "Edit basic info — OneKare" %>
+<%= link_to "← Children", children_path, class: "back-link" %>
+<div class="page-head"><div><h1>Edit basic info</h1><p>Name and date of birth.</p></div></div>
 <%= render "form", child: @child %>
-
-<br>
-<%= link_to "Back to children", children_path %>

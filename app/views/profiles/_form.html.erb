@@ -1,0 +1,45 @@
+<%# locals: section, child %>
+<div class="form-layout">
+  <nav class="step-nav" aria-label="Profile sections">
+    <% ProfileSchema::TABS.each do |tab, label| %>
+      <div class="group"><%= label %></div>
+      <% ProfileSchema.for_tab(tab).each do |s| %>
+        <%= link_to s.title, edit_child_profile_path(child, section: s.key), class: ("active" if s.key == section.key) %>
+      <% end %>
+    <% end %>
+  </nav>
+
+  <%= form_with url: child_profile_path(child), method: :patch, data: { controller: "conditional" } do %>
+    <%= hidden_field_tag :section, section.key %>
+    <div class="card">
+      <h2><%= section.title %></h2>
+      <% if section.intro %><p class="muted" style="margin:6px 0 20px"><%= section.intro %></p><% end %>
+      <div class="notice-box">Heads up: answers in these sections aren’t stored yet — only your child’s name and date of birth are. Sensitive questions will only be shared with a daycare when it requires them and you approve the submission.</div>
+
+      <% if section.repeatable %>
+        <div data-controller="repeater">
+          <div data-repeater-target="list">
+            <%= render "profiles/person", section: section, index: 0, number: 1 %>
+          </div>
+          <template data-repeater-target="template">
+            <%= render "profiles/person", section: section, index: "NEW_INDEX", number: "+" %>
+          </template>
+          <button type="button" class="btn btn-outline" data-action="repeater#add">Add another</button>
+        </div>
+      <% else %>
+        <% section.fields.each do |field| %>
+          <%= profile_field(field) %>
+        <% end %>
+      <% end %>
+    </div>
+
+    <div class="btn-row">
+      <%= submit_tag "Save", class: "btn btn-primary" %>
+      <% next_section = ProfileSchema.sections[ProfileSchema.sections.index(section) + 1] %>
+      <% if next_section %>
+        <%= submit_tag "Save and continue", name: "commit_next", class: "btn btn-outline" %>
+      <% end %>
+      <%= link_to "Cancel", child_profile_path(child), class: "btn btn-link" %>
+    </div>
+  <% end %>
+</div>

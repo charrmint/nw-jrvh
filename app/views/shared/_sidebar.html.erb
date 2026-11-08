@@ -1,0 +1,11 @@
+<nav class="sidebar" aria-label="Main">
+  <%= link_to "O", home_path, class: "logo-mark", title: "OneKare" %>
+  <% OnekareHelper::NAV_ITEMS.each do |item| %>
+    <%= link_to public_send(item[:path]),
+          class: "nav-btn #{'active' if nav_active?(item[:key])}",
+          title: item[:label], "aria-label": item[:label],
+          "aria-current": (nav_active?(item[:key]) ? "page" : nil) do %>
+      <%= nav_icon(item[:icon]) %>
+    <% end %>
+  <% end %>
+</nav>

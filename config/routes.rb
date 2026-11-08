@@ -27,6 +27,7 @@ Rails.application.routes.draw do
   resources :daycares, only: %i[ index show ]
   resources :daycares, only: [] do
     resource :ymca_experiment, only: :create
+    resource :beyond_care_experiment, only: :create
   end
 
   # Front-end-only screens

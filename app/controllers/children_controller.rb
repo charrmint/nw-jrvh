@@ -2,7 +2,7 @@ class ChildrenController < ApplicationController
   before_action :set_child, only: %i[ edit update ]
 
   def index
-    @children = Current.user.children.order(:full_name)
+    @children = Current.user.children.includes(:general_application).order(:full_name)
   end
 
   def new

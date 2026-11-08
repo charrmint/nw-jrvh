@@ -48,6 +48,8 @@ module Integrations
         "parent.birthdate" => "parent.date_of_birth",
         "parent.mobile_phone" => "parent.local_phone",
         "parent.second_guardian" => "parent.second_guardian_name",
+        "child.age_category" => "child.date_of_birth",
+        "child.extra_needs" => "child.support_required",
         "program_type" => "daycare.external_program_id",
         "centres" => "daycare.external_location_id"
       }

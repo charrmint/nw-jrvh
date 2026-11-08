@@ -1,20 +1,53 @@
-<div class="card" style="max-width:520px">
-  <% if child.errors.any? %>
-    <div class="flash alert" role="alert"><%= child.errors.full_messages.to_sentence %></div>
+<%# Birthdate: exactly one of born / expected due date / unknown is saved (see Child#birthdate_or_due_date). %>
+<% kind = if child.birthdate_unknown? then "unknown"
+          elsif child.expected_due_date.present? && child.date_of_birth.blank? then "due"
+          else "born" end %>
+<% messages = child.errors.reject { |error| error.attribute == :full_name }.map(&:full_message) %>
+
+<div class="card" style="max-width:560px">
+  <% if messages.any? %>
+    <div class="flash alert" role="alert"><%= messages.to_sentence %></div>
   <% end %>
-  <%= form_with model: child do |form| %>
-    <div class="field">
-      <%= form.label :first_name, "First name" %>
-      <%= form.text_field :first_name, required: true, autofocus: true, autocomplete: "given-name", maxlength: 100 %>
+
+  <%= form_with model: child, data: { controller: "birthdate", birthdate_kind_value: kind } do |form| %>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="field">
+        <%= form.label :first_name, "First name" %>
+        <%= form.text_field :first_name, value: child.first_name.presence || child.full_name.to_s.split.first, required: true, autofocus: true, autocomplete: "off", maxlength: 100 %>
+      </div>
+      <div class="field">
+        <%= form.label :last_name, "Last name" %>
+        <%= form.text_field :last_name, value: child.last_name.presence || child.full_name.to_s.split.drop(1).join(" ").presence, required: true, autocomplete: "off", maxlength: 100 %>
+      </div>
     </div>
+
     <div class="field">
-      <%= form.label :last_name, "Last name" %>
-      <%= form.text_field :last_name, required: true, autocomplete: "family-name", maxlength: 100 %>
+      <span class="label">Birthdate</span>
+      <div class="choices">
+        <label><%= radio_button_tag :birthdate_kind, "born", kind == "born", data: { action: "birthdate#change" } %> Born</label>
+        <label><%= radio_button_tag :birthdate_kind, "due", kind == "due", data: { action: "birthdate#change" } %> Not born yet (expected due date)</label>
+        <label><%= radio_button_tag :birthdate_kind, "unknown", kind == "unknown", data: { action: "birthdate#change" } %> I don’t know</label>
+      </div>
     </div>
-    <div class="field">
+
+    <div class="field" data-birthdate-target="born">
       <%= form.label :date_of_birth, "Date of birth" %>
-      <%= form.date_field :date_of_birth, required: true %>
+      <%= form.date_field :date_of_birth %>
     </div>
+
+    <div class="field" data-birthdate-target="due">
+      <%= form.label :expected_due_date, "Expected due date" %>
+      <%= form.date_field :expected_due_date %>
+    </div>
+
+    <div class="field" data-birthdate-target="estimated">
+      <div class="choices">
+        <label><%= form.check_box :birthdate_estimated %> This date is an estimate</label>
+      </div>
+    </div>
+
+    <%= form.hidden_field :birthdate_unknown, value: (kind == "unknown" ? "1" : "0"), data: { birthdate_target: "unknown" } %>
+
     <div class="btn-row" style="margin-top:8px">
       <%= form.submit (child.persisted? ? "Save changes" : "Add child"), class: "btn btn-primary" %>
       <%= link_to "Cancel", children_path, class: "btn btn-link" %>

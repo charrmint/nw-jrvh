@@ -1,28 +1,65 @@
 <% content_for :title, "#{@application.daycare.name} — OneKare" %>
+<% status = @application.status %>
 <%= link_to "‹ All applications", daycare_applications_path, class: "back-link" %>
-<div class="page-head">
-  <div>
-    <h1><%= @application.daycare.name %></h1>
-    <p><%= @application.child.full_name %></p>
-  </div>
-  <span class="badge <%= status_class(@application.status) %>"><%= @application.status.humanize %></span>
-</div>
 
-<div class="card">
-  <p>Requested <%= l(@application.created_at, format: :long) %></p>
-  <% if @application.submitted_at? %>
-    <p>Submission confirmed <%= l(@application.submitted_at, format: :long) %>.</p>
-    <p>This does not confirm waitlist membership.</p>
-  <% elsif @application.sent_at? %>
-    <p>Email send accepted <%= l(@application.sent_at, format: :long) %>.</p>
-    <p>This does not confirm waitlist membership.</p>
-  <% elsif @application.status == "submission_uncertain" %>
-    <p>The final submission was attempted, but confirmation was not observed. Check the provider before trying again.</p>
-  <% elsif @application.status == "submission_failed" %>
-    <p>The application stopped before a confirmed submission. It will not retry automatically.</p>
-  <% end %>
-  <% if @application.provider_application_id.present? %>
-    <p>Provider reference: <%= @application.provider_application_id %></p>
-  <% end %>
-  <%= link_to "View daycare", daycare_path(@application.daycare, child_id: @application.child_id), class: "btn btn-outline" %>
+<div data-application-status
+  <% if application_in_progress?(status) %>
+    data-controller="application-status"
+    data-application-status-url-value="<%= daycare_application_path(@application) %>"
+    data-application-status-interval-value="2000"
+  <% end %>>
+
+  <div class="page-head">
+    <div>
+      <h1><%= @application.daycare.name %></h1>
+      <p>For <%= @application.child.full_name %></p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <span class="badge <%= status_class(status) %>"><%= status_label(status) %></span>
+      <% if application_in_progress?(status) %><span class="spinner" aria-label="In progress"></span><% end %>
+    </div>
+  </div>
+
+  <div class="detail-layout">
+    <div class="card">
+      <h2 style="margin-bottom:14px">What happened</h2>
+      <p style="margin-top:0">Requested <%= l(@application.created_at, format: :long) %></p>
+      <% if @application.submitted_at? %>
+        <p>Submission confirmed <%= l(@application.submitted_at, format: :long) %>.</p>
+        <p class="muted">This does not confirm waitlist membership.</p>
+      <% elsif @application.sent_at? %>
+        <p>Email send accepted <%= l(@application.sent_at, format: :long) %>.</p>
+        <p class="muted">This does not confirm waitlist membership.</p>
+      <% elsif status == "submission_uncertain" %>
+        <p>The final submission was attempted, but confirmation was not observed. Check the provider before trying again.</p>
+      <% elsif status == "submission_failed" %>
+        <p>The application stopped before a confirmed submission. It will not retry automatically.</p>
+      <% elsif status == "send_failed" %>
+        <p>Gmail rejected the send request. It was not retried automatically.</p>
+      <% elsif status == "send_uncertain" %>
+        <p>The send result is uncertain. It was not retried to avoid a duplicate.</p>
+      <% elsif application_in_progress?(status) %>
+        <p class="muted">OneKare is working on this now. This page updates by itself.</p>
+      <% end %>
+      <% if @application.provider_application_id.present? %>
+        <p>Provider reference: <strong><%= @application.provider_application_id %></strong></p>
+      <% end %>
+      <%= link_to "View daycare", daycare_path(@application.daycare, child_id: @application.child_id), class: "btn btn-outline" %>
+    </div>
+
+    <aside class="card">
+      <h3>Progress</h3>
+      <% done = %w[submitted waitlist_request_sent].include?(status) %>
+      <% stopped = %w[submission_failed submission_uncertain send_failed send_uncertain].include?(status) %>
+      <ul class="timeline">
+        <li>Requested</li>
+        <li class="<%= 'later' if status == 'pending' %>">Sending to provider</li>
+        <% if stopped %>
+          <li class="stopped"><%= status_label(status) %></li>
+        <% else %>
+          <li class="<%= 'later' unless done %>"><%= status == "waitlist_request_sent" ? "Email sent" : "Submitted" %></li>
+        <% end %>
+      </ul>
+    </aside>
+  </div>
 </div>

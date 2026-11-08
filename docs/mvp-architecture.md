@@ -1,6 +1,6 @@
 # OneKare MVP architecture and implementation plan
 
-This is the proposed design, not an implemented integration. The repository currently contains project documentation. Each provider flow must be validated before enabling production automation.
+This is the proposed design, not an implemented integration. The repository contains a Rails scaffold and project documentation; business workflows still need implementation. Each provider flow must be validated before enabling production automation. See the [frontend/backend implementation plan](implementation-plan.md) for named classes, shared contracts and assignable tasks.
 
 ## Product scope
 

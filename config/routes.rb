@@ -20,4 +20,7 @@ Rails.application.routes.draw do
   resources :passwords, param: :token, only: %i[ new create edit update ]
   resources :children, only: %i[ index new create edit update ]
   resources :daycares, only: %i[ index show ]
+  resources :general_applications, except: %i[ show destroy ]
+  resource :settings, only: :show
+  resource :ymca_connection, only: %i[ create update destroy ]
 end

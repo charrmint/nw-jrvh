@@ -1,0 +1,28 @@
+<% content_for :title, "Settings | OneKare" %>
+
+<h1>Settings</h1>
+<h2>Connected provider accounts</h2>
+
+<section>
+  <h3>YMCA BC</h3>
+  <p>Save the username or email and password for your YMCA child care portal account. This connection can be used for YMCA centres that share the same portal.</p>
+  <% if @ymca_connection.errors.any? %>
+    <div role="alert"><ul><% @ymca_connection.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul></div>
+  <% end %>
+
+  <% if @ymca_connection.persisted? %>
+    <p>Account saved for <strong><%= @ymca_connection.username %></strong>. Password is stored securely and is never displayed.</p>
+  <% end %>
+
+  <%= form_with model: @ymca_connection, url: ymca_connection_path, method: @ymca_connection.persisted? ? :patch : :post do |form| %>
+    <p><%= form.label :username, "YMCA portal username or email" %><br><%= form.text_field :username, required: true, autocomplete: "username" %></p>
+    <p><%= form.label :password, @ymca_connection.persisted? ? "New password (leave blank to keep current password)" : "YMCA portal password" %><br><%= form.password_field :password, required: !@ymca_connection.persisted?, autocomplete: "new-password" %></p>
+    <p><%= form.submit @ymca_connection.persisted? ? "Update YMCA account" : "Save YMCA account" %></p>
+  <% end %>
+
+  <% if @ymca_connection.persisted? %>
+    <%= button_to "Remove YMCA account", ymca_connection_path, method: :delete, data: { turbo_confirm: "Remove saved YMCA credentials?" } %>
+  <% end %>
+</section>
+
+<p><%= link_to "Back to home", root_path %></p>

@@ -36,6 +36,6 @@ class ChildrenController < ApplicationController
     end
 
     def child_params
-      params.expect(child: %i[ full_name date_of_birth ])
+      params.expect(child: %i[ first_name last_name date_of_birth expected_due_date birthdate_unknown birthdate_estimated ])
     end
 end

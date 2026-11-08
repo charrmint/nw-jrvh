@@ -6,7 +6,7 @@
   <ul>
     <% @children.each do |child| %>
       <li>
-        <%= child.full_name %> — <%= child.date_of_birth.to_fs(:long) %>
+        <%= child.full_name %> — <%= child.date_of_birth&.to_fs(:long) || child.expected_due_date&.to_fs(:long) || "Birthdate unknown" %>
         <%= link_to "Edit", edit_child_path(child) %>
       </li>
     <% end %>

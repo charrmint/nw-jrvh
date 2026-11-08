@@ -10,16 +10,21 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_040000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_050003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "children", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "full_name", null: false
-    t.date "date_of_birth", null: false
+    t.date "date_of_birth"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.date "expected_due_date"
+    t.boolean "birthdate_unknown", default: false, null: false
+    t.string "first_name"
+    t.string "last_name"
+    t.boolean "birthdate_estimated", default: false, null: false
     t.index ["user_id"], name: "index_children_on_user_id"
   end
 
@@ -54,6 +59,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_040000) do
     t.index ["support_status"], name: "index_daycares_on_support_status"
   end
 
+  create_table "general_applications", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.bigint "child_id", null: false
+    t.jsonb "answers", default: {}, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["child_id"], name: "index_general_applications_on_child_id"
+    t.index ["user_id", "child_id"], name: "index_general_applications_on_user_id_and_child_id", unique: true
+    t.index ["user_id"], name: "index_general_applications_on_user_id"
+  end
+
+  create_table "provider_connections", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.string "provider_key", null: false
+    t.string "username", null: false
+    t.text "encrypted_password", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id", "provider_key"], name: "index_provider_connections_on_user_id_and_provider_key", unique: true
+    t.index ["user_id"], name: "index_provider_connections_on_user_id"
+  end
+
   create_table "sessions", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "ip_address"
@@ -74,5 +101,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_040000) do
   end
 
   add_foreign_key "children", "users"
+  add_foreign_key "general_applications", "children"
+  add_foreign_key "general_applications", "users"
+  add_foreign_key "provider_connections", "users"
   add_foreign_key "sessions", "users"
 end

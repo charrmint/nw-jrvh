@@ -57,6 +57,10 @@ module OnekareHelper
   def logout_target = session_path
 
   def status_class(status)
-    { "Missing information" => "missing", "Ready to review" => "ready", "In review" => "review" }.fetch(status, "review")
+    {
+      "submission_failed" => "missing", "send_failed" => "missing",
+      "submission_uncertain" => "review", "send_uncertain" => "review",
+      "submitted" => "ready", "waitlist_request_sent" => "ready"
+    }.fetch(status, "review")
   end
 end

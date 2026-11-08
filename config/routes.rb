@@ -29,6 +29,7 @@ Rails.application.routes.draw do
   delete "gmail/connection", to: "gmail_connections#destroy", as: :gmail_connection
   resources :daycares, only: %i[ index show ]
   resources :daycares, only: [] do
+    resource :browser_application, only: :create
     resource :ymca_experiment, only: :create
     resource :beyond_care_experiment, only: :create
     resource :parkcrest_application, only: :create

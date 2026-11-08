@@ -1,7 +1,7 @@
 provider_key: beyond_care
 workflow_key: public_waitlist
 start_url: https://bcchildcentre.ca/wait-list
-experiment_submit_enabled: false
+live_submit_enabled: true
 allowed_defaults: {}
 live_validation:
   observed_on: "2026-11-08"

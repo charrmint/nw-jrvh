@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import os
+import re
 import sys
 import traceback
 from typing import Any
@@ -27,6 +28,7 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
         "reached_review": False,
         "submitted": False,
         "submission_confirmed": False,
+        "submission_attempted": False,
         "mapping_changes": [],
     }
     stage = "launch"
@@ -40,7 +42,7 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
             adapter = YmcaChildCareWaitlist(
                 page,
                 resolver,
-                experiment=True,
+                experiment=not request.get("submit_enabled", False),
                 allow_child_creation=True,
                 debug_screenshot=request.get("debug_screenshot"),
             )
@@ -75,13 +77,28 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
             await adapter.fill_family_step(request["snapshot"])
             stage = "locations"
             await adapter.keep_first_location_and_open_review()
+            result["reached_review"] = True
             stage = "review_guard"
-            try:
+            if request.get("submit_enabled"):
+                result["submission_attempted"] = True
+                stage = "submit"
                 await adapter.submit_application()
-            except FinalSubmissionForbidden:
-                pass
+                stage = "confirmation"
+                await page.get_by_role("heading", name="Review and submit").wait_for(
+                    state="hidden", timeout=15_000
+                )
+                confirmation = page.get_by_text(
+                    re.compile(r"application (?:has been |was )?submitted|successfully submitted|submission received|added to .*waitlist", re.I)
+                ).first
+                await confirmation.wait_for(state="visible", timeout=15_000)
+                result.update(status="submitted", submitted=True, submission_confirmed=True)
+            else:
+                try:
+                    await adapter.submit_application()
+                except FinalSubmissionForbidden:
+                    pass
+                result["status"] = "review_reached"
             result.update(
-                status="review_reached",
                 reached_review=True,
                 child_profile_action=adapter.child_profile_action,
                 target={
@@ -94,6 +111,8 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
             await context.close()
             await browser.close()
     except Exception as error:  # Return a safe type-only failure; never serialize values/page content.
+        if result["submission_attempted"]:
+            result["status"] = "submission_uncertain"
         result["error_type"] = type(error).__name__
         result["error_stage"] = stage
         result["error_detail"] = adapter.safe_stage if adapter else None

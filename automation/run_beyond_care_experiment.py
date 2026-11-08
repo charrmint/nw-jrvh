@@ -1,4 +1,4 @@
-"""Fill Beyond Care's public waitlist with saved answers without submitting."""
+"""Fill Beyond Care's public waitlist and optionally submit it."""
 
 from __future__ import annotations
 
@@ -27,6 +27,7 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
         "reached_submit_ready": False,
         "submitted": False,
         "submission_confirmed": False,
+        "submission_attempted": False,
         "mapping_changes": [],
     }
     stage = "launch"
@@ -47,7 +48,7 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
             adapter = BeyondCareWaitlist(
                 page,
                 resolver,
-                experiment=True,
+                experiment=not request.get("submit_enabled", False),
                 debug_screenshot=request.get("debug_screenshot"),
             )
             stage = "inspect"
@@ -57,16 +58,26 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
                 await adapter.fill(request["snapshot"], resolved)
                 stage = "persistence"
                 persistence = await adapter.persistence_probe()
+                if not persistence["form_valid"]:
+                    raise RuntimeError("The live waitlist form is invalid before submission")
+                result.update(reached_submit_ready=True, persistence=persistence)
                 stage = "submit_guard"
-                try:
+                if request.get("submit_enabled"):
+                    await adapter._guard_verification()
+                    result["submission_attempted"] = True
+                    stage = "submit"
                     await adapter.submit_application()
-                except FinalSubmissionForbidden:
-                    pass
-                result.update(
-                    status="filled_unsent",
-                    reached_submit_ready=True,
-                    persistence=persistence,
-                )
+                    stage = "confirmation"
+                    await page.get_by_text("Application Submitted!", exact=True).wait_for(
+                        state="visible", timeout=15_000
+                    )
+                    result.update(status="submitted", submitted=True, submission_confirmed=True)
+                else:
+                    try:
+                        await adapter.submit_application()
+                    except FinalSubmissionForbidden:
+                        pass
+                    result["status"] = "filled_unsent"
             except EligibilityBlocked as error:
                 persistence = await adapter.persistence_probe()
                 result.update(
@@ -93,6 +104,8 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
     except VerificationChallenge as error:
         result.update(status="verification_required", blocker="verification", blocker_detail=str(error))
     except Exception as error:
+        if result["submission_attempted"]:
+            result["status"] = "submission_uncertain"
         result["error_type"] = type(error).__name__
         result["error_stage"] = stage
         result["error_detail"] = adapter.safe_stage if adapter else None

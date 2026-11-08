@@ -12,11 +12,13 @@ module Automation
         end
       end
 
-      def initialize(child:, daycare:, headless: true, debug_screenshot: nil)
+      def initialize(child:, daycare:, headless: true, debug_screenshot: nil, snapshot: nil, submit: false)
         @child = child
         @daycare = daycare
         @headless = headless
         @debug_screenshot = debug_screenshot
+        @snapshot = snapshot
+        @submit = submit
       end
 
       def call
@@ -30,6 +32,9 @@ module Automation
           Rails.root.join("config/integrations/beyond_care_waitlist.yml"),
           aliases: false
         ).deep_stringify_keys
+        if @submit && (config["live_submit_enabled"] != true || settings["submit_enabled"] != true || @daycare.support_status != "enabled")
+          raise Error, "Beyond Care live submission is disabled"
+        end
         scope = {
           provider_key: config.fetch("provider_key"),
           workflow_key: config.fetch("workflow_key"),
@@ -68,7 +73,8 @@ module Automation
           end
 
           {
-            snapshot: application.normalized_answers,
+            snapshot: @snapshot || application.normalized_answers,
+            submit_enabled: @submit,
             headless: @headless,
             debug_screenshot: @debug_screenshot,
             current_mappings: current_mappings,
@@ -94,7 +100,7 @@ module Automation
 
         def safe_result(result)
           result.slice(
-            "status", "reached_submit_ready", "submitted", "submission_confirmed",
+            "status", "reached_submit_ready", "submitted", "submission_confirmed", "submission_attempted",
             "blocker", "blocker_detail", "filled_fields", "observed_field_keys",
             "mapping_reused", "persistence", "pre_submit_form_write_requests",
             "background_write_request_count",

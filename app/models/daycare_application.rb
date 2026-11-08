@@ -1,5 +1,5 @@
 class DaycareApplication < ApplicationRecord
-  STATUSES = %w[pending sending submitted waitlist_request_sent send_failed send_uncertain].freeze
+  STATUSES = %w[pending sending submitted submission_failed submission_uncertain waitlist_request_sent send_failed send_uncertain].freeze
 
   belongs_to :child
   belongs_to :daycare

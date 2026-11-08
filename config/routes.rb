@@ -19,4 +19,5 @@ Rails.application.routes.draw do
 
   resources :passwords, param: :token, only: %i[ new create edit update ]
   resources :children, only: %i[ index new create edit update ]
+  resources :daycares, only: %i[ index show ]
 end

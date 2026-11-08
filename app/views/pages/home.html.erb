@@ -5,6 +5,10 @@
 
 <% if authenticated? %>
   <p>Signed in as <%= Current.user.full_name %></p>
+  <p>
+    <%= link_to "Find a daycare", daycares_path %> |
+    <%= link_to "Children", children_path %>
+  </p>
   <%= button_to "Log out", session_path, method: :delete %>
 <% else %>
   <%= link_to "Sign up", sign_up_path %> |

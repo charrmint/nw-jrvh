@@ -1,0 +1,57 @@
+<% content_for :title, "#{@daycare.name} | OneKare" %>
+
+<h1><%= @daycare.name %></h1>
+
+<p><%= [ @daycare.address, @daycare.city, @daycare.postal_code ].compact.join(", ") %></p>
+
+<h2>Care types</h2>
+<% if @daycare.care_types.any? %>
+  <ul>
+    <% @daycare.care_types.each do |care_type| %>
+      <li><%= care_type["label"] %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No care types reported.</p>
+<% end %>
+
+<h2>Contact</h2>
+<ul>
+  <li>Phone: <%= @daycare.phone.present? ? link_to(@daycare.phone, "tel:#{@daycare.phone}") : "Not provided" %></li>
+  <li>Email: <%= @daycare.contact_email.present? ? mail_to(@daycare.contact_email) : "Not provided" %></li>
+  <% if @daycare.website_link_url.present? %>
+    <li><%= link_to "Visit website", @daycare.website_link_url, target: "_blank", rel: "noopener" %></li>
+  <% end %>
+</ul>
+
+<h2>Reported vacancies</h2>
+<% available_vacancies = @daycare.reported_vacancies.values.select { |vacancy| vacancy["available"] } %>
+<% if available_vacancies.any? %>
+  <ul>
+    <% available_vacancies.each do |vacancy| %>
+      <li><%= vacancy["label"] %></li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No vacancies reported.</p>
+<% end %>
+<% if @daycare.vacancy_updated_at.present? %>
+  <p>Vacancy information updated <%= @daycare.vacancy_updated_at.to_date.to_fs(:long) %>.</p>
+<% end %>
+
+<% if @daycare.support_status == "unconfigured" %>
+  <h2>Contact this daycare</h2>
+  <% if @daycare.website_link_url.present? %>
+    <%= link_to "Visit daycare website", @daycare.website_link_url, target: "_blank", rel: "noopener" %>
+  <% elsif @daycare.contact_email.present? %>
+    <%= mail_to @daycare.contact_email, "Email this daycare" %>
+  <% elsif @daycare.phone.present? %>
+    <%= link_to "Call this daycare", "tel:#{@daycare.phone}" %>
+  <% else %>
+    <p>This daycare has not provided a website or contact method.</p>
+  <% end %>
+<% elsif @daycare.application_link_url.present? %>
+  <%= link_to "Open verified application page", @daycare.application_link_url, target: "_blank", rel: "noopener" %>
+<% end %>
+
+<p><%= link_to "Back to daycare search", daycares_path %></p>

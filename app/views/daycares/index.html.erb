@@ -1,0 +1,43 @@
+<% content_for :title, "Find a daycare | OneKare" %>
+
+<h1>Find a daycare</h1>
+
+<%= form_with url: daycares_path, method: :get do |form| %>
+  <div>
+    <%= form.label :name, "Daycare name" %>
+    <%= form.search_field :name, value: params[:name] %>
+  </div>
+
+  <div>
+    <%= form.label :city %>
+    <%= form.search_field :city, value: params[:city] %>
+  </div>
+
+  <div>
+    <%= form.label :postal_code, "Postal code" %>
+    <%= form.search_field :postal_code, value: params[:postal_code] %>
+  </div>
+
+  <%= form.submit "Search" %>
+  <%= link_to "Clear", daycares_path if params.values_at(:name, :city, :postal_code).any?(&:present?) %>
+<% end %>
+
+<p>Showing up to 100 daycares.</p>
+
+<% if @daycares.any? %>
+  <ul>
+    <% @daycares.each do |daycare| %>
+      <li>
+        <h2><%= link_to daycare.name, daycare_path(daycare) %></h2>
+        <p><%= [ daycare.address, daycare.city, daycare.postal_code ].compact.join(", ") %></p>
+        <% if daycare.care_types.any? %>
+          <p><%= daycare.care_types.pluck("label").join(" · ") %></p>
+        <% end %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No daycares matched your search.</p>
+<% end %>
+
+<%= link_to "Back to home", root_path %>

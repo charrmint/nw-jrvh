@@ -10,7 +10,7 @@ module DaycareApplications
     def call(result)
       result = result.deep_stringify_keys
       unless result["submitted"] == true && result["submission_confirmed"] == true
-        raise UnconfirmedSubmission, "YMCA submission was not explicitly confirmed"
+        raise UnconfirmedSubmission, "Provider submission was not explicitly confirmed"
       end
 
       application = DaycareApplication.find_or_initialize_by(child: @child, daycare: @daycare)

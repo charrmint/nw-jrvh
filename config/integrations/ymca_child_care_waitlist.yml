@@ -1,7 +1,7 @@
 provider_key: ymca_bc
 workflow_key: child_care_waitlist
 start_url: https://mycommunity.bc.ymca.ca/s/find-child-care
-experiment_submit_enabled: false
+live_submit_enabled: true
 allowed_defaults:
   provider_specific_priority: "No"
   marketing_sms: "No"

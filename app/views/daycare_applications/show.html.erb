@@ -1,52 +1,28 @@
-<% content_for :title, "#{@application[:daycare]} — OneKare" %>
+<% content_for :title, "#{@application.daycare.name} — OneKare" %>
 <%= link_to "‹ All applications", daycare_applications_path, class: "back-link" %>
 <div class="page-head">
-  <div><h1><%= @application[:daycare] %></h1><p><%= @application[:child] %> · <%= @application[:care] %></p></div>
-  <div>Status: <span class="badge <%= status_class(@application[:status]) %>"><%= @application[:status] %></span></div>
+  <div>
+    <h1><%= @application.daycare.name %></h1>
+    <p><%= @application.child.full_name %></p>
+  </div>
+  <span class="badge <%= status_class(@application.status) %>"><%= @application.status.humanize %></span>
 </div>
 
-<div class="detail-layout">
-  <div class="accordion">
-    <details open>
-      <summary>Application status</summary>
-      <div class="body">
-        <% if @application[:needs].any? %>
-          <div class="missing-box">
-            <div style="color:var(--red)">Missing items: <%= @application[:needs].join(", ") %></div>
-          </div>
-        <% else %>
-          <div class="missing-box">Nothing missing right now.</div>
-        <% end %>
-        <div class="muted small">Last saved: <%= @application[:updated] %></div>
-      </div>
-    </details>
-    <% [ "Requested care", "Child information", "Guardian information", "Health & safety", "Documents", "Consents", "Submission history" ].each do |title| %>
-      <details>
-        <summary><%= title %></summary>
-        <div class="body">Details will appear here once this application is connected to a daycare.</div>
-      </details>
-    <% end %>
-
-    <div class="btn-row">
-      <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed">Review and submit</button>
-      <span class="muted small" style="align-self:center">You’ll see exactly what will be sent before anything is submitted.</span>
-    </div>
-  </div>
-
-  <aside class="card">
-    <h3>Application timeline</h3>
-    <div class="eyebrow" style="margin-top:12px">Before submission</div>
-    <ul class="timeline">
-      <% DemoData::BEFORE_SUBMISSION.each_with_index do |step, i| %>
-        <li class="<%= 'later' if i > @application[:timeline_current] %>"><%= step %></li>
-      <% end %>
-    </ul>
-    <hr class="divider">
-    <div class="eyebrow">After submission</div>
-    <ul class="timeline">
-      <% DemoData::AFTER_SUBMISSION.each_with_index do |step, i| %>
-        <li class="later"><%= step %></li>
-      <% end %>
-    </ul>
-  </aside>
+<div class="card">
+  <p>Requested <%= l(@application.created_at, format: :long) %></p>
+  <% if @application.submitted_at? %>
+    <p>Submission confirmed <%= l(@application.submitted_at, format: :long) %>.</p>
+    <p>This does not confirm waitlist membership.</p>
+  <% elsif @application.sent_at? %>
+    <p>Email send accepted <%= l(@application.sent_at, format: :long) %>.</p>
+    <p>This does not confirm waitlist membership.</p>
+  <% elsif @application.status == "submission_uncertain" %>
+    <p>The final submission was attempted, but confirmation was not observed. Check the provider before trying again.</p>
+  <% elsif @application.status == "submission_failed" %>
+    <p>The application stopped before a confirmed submission. It will not retry automatically.</p>
+  <% end %>
+  <% if @application.provider_application_id.present? %>
+    <p>Provider reference: <%= @application.provider_application_id %></p>
+  <% end %>
+  <%= link_to "View daycare", daycare_path(@application.daycare, child_id: @application.child_id), class: "btn btn-outline" %>
 </div>

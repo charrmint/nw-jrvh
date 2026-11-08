@@ -12,10 +12,12 @@ module Automation
         end
       end
 
-      def initialize(child:, daycare:, headless: true)
+      def initialize(child:, daycare:, headless: true, snapshot: nil, submit: false)
         @child = child
         @daycare = daycare
         @headless = headless
+        @snapshot = snapshot
+        @submit = submit
       end
 
       def call
@@ -30,6 +32,7 @@ module Automation
           Rails.root.join("config/integrations/ymca_child_care_waitlist.yml"),
           aliases: false
         ).deep_stringify_keys
+        raise Error, "YMCA live submission is disabled" if @submit && config["live_submit_enabled"] != true
         scope = {
           provider_key: config.fetch("provider_key"),
           workflow_key: config.fetch("workflow_key"),
@@ -48,7 +51,6 @@ module Automation
 
         result = JSON.parse(stdout)
         store_mapping_changes(result, scope)
-        record_confirmed_submission(result)
         unless result["reached_review"]
           raise Error.new("YMCA did not reach its Review screen", result: safe_result(result))
         end
@@ -74,7 +76,8 @@ module Automation
 
           {
             credential: { username: connection.username, password: connection.decrypted_password },
-            snapshot: application.normalized_answers,
+            snapshot: @snapshot || application.normalized_answers,
+            submit_enabled: @submit,
             program_text: settings.fetch("program_text"),
             centre_text: settings.fetch("centre_name"),
             target: {
@@ -103,15 +106,10 @@ module Automation
 
         def safe_result(result)
           result.slice(
-            "status", "reached_review", "child_profile_action", "target",
+            "status", "reached_review", "submitted", "submission_confirmed",
+            "submission_attempted", "child_profile_action", "target",
             "error_type", "error_stage", "error_detail"
           )
-        end
-
-        def record_confirmed_submission(result)
-          return unless result["submitted"] == true && result["submission_confirmed"] == true
-
-          DaycareApplications::SubmissionRecorder.new(child: @child, daycare: @daycare).call(result)
         end
     end
   end

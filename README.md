@@ -6,11 +6,11 @@ OneKare is an AI-assisted daycare application platform. Parents complete a gener
 
 See [the architecture and implementation plan](docs/mvp-architecture.md) for the shared automation engine, reusable platform adapters, database-backed provider configuration and delivery milestones.
 
-The current parent-facing work includes a [fixed MVP upfront question contract](docs/mvp-upfront-questions.md), a central general application per child, and Settings for encrypted YMCA portal credentials. After pulling these changes, run `bin/rails db:migrate` against your development database before opening those pages. The daycare-specific automatic submission flows are the next development phase.
+The current parent-facing work includes a [fixed MVP upfront question contract](docs/mvp-upfront-questions.md), a central general application per child, Settings for encrypted YMCA portal credentials and Gmail connection, and recorded applications. Run `bin/rails db:migrate` against your development database after pulling changes.
 
 For assigning team work, use the [frontend/backend implementation plan](docs/implementation-plan.md). It defines matching screens, routes, models, service classes, worker contracts, task dependencies and acceptance criteria.
 
-The initial scenarios are YWCA public forms, YMCA authenticated applications using securely stored provider credentials, and Parkcrest Child Care Society email-only school-age waitlist requests. Parkcrest ends at **Waitlist request sent**; inbox monitoring and subsequent enrollment are outside the MVP.
+The initial scenarios are Beyond Care's public form, Beach YMCA's authenticated application using securely stored provider credentials, and Parkcrest Child Care Society's email-only school-age waitlist request. Parkcrest ends at **Waitlist request sent**; inbox monitoring and subsequent enrollment are outside the MVP.
 
 ## Technology stack
 
@@ -249,7 +249,7 @@ git --version
 
 ## Safety and MVP boundaries
 
-- Use fictional family data for the hackathon.
+- Use fictional family data for development checks. Clicking **Apply automatically** on enabled Beach YMCA or Beyond Care records sends a real application using the selected child's saved details.
 - Respect daycare website terms and anti-automation controls.
 - Do not bypass CAPTCHAs or access restrictions.
 - A parent's **Apply automatically** action starts one submission for the selected child and daycare. There is no separate parent review or approval screen in the MVP.

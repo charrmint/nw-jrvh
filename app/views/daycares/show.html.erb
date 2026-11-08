@@ -64,32 +64,42 @@
       <% end %>
 
       <div style="margin-top:12px">
-        <% if @daycare.ymca_enabled? %>
-          <%= form_with url: daycare_ymca_experiment_path(@daycare), method: :post do |form| %>
-            <% if child %>
-              <%= form.hidden_field :child_id, value: child.id %>
-            <% else %>
-              <%= form.label :child_id, "Child" %>
-              <%= form.select :child_id,
-                onekare_user.children.order(:first_name, :last_name).map { |candidate| [ candidate.full_name, candidate.id ] },
-                { prompt: "Choose a child" }, required: true %>
+        <% if @daycare.ymca_enabled? || @daycare.beyond_care_enabled? %>
+          <% existing_application = child && child.daycare_applications.find_by(daycare: @daycare) %>
+          <% if existing_application && existing_application.status != "submission_failed" %>
+            <% label = existing_application.status == "submitted" ? "Application submitted" : existing_application.status.humanize %>
+            <button type="button" class="btn btn-primary" disabled style="opacity:.55;cursor:not-allowed"><%= label %></button>
+            <p class="muted small" style="margin:8px 0 0">
+              <% case existing_application.status %>
+              <% when "pending", "sending" %>
+                OneKare is submitting this application. Refresh this page for the result.
+              <% when "submitted" %>
+                The provider displayed a submission confirmation. This does not confirm waitlist membership.
+              <% when "submission_uncertain" %>
+                Submission may have succeeded, but confirmation was not observed. Check with the provider before applying again.
+              <% else %>
+                The application stopped without a confirmed submission. No automatic retry will occur.
+              <% end %>
+            </p>
+          <% else %>
+            <%= form_with url: daycare_browser_application_path(@daycare), method: :post do |form| %>
+              <% if child %>
+                <%= form.hidden_field :child_id, value: child.id %>
+              <% else %>
+                <%= form.label :child_id, "Child" %>
+                <%= form.select :child_id,
+                  onekare_user.children.order(:first_name, :last_name).map { |candidate| [ candidate.full_name, candidate.id ] },
+                  { prompt: "Choose a child" }, required: true %>
+              <% end %>
+              <%= form.submit "Apply automatically#{child ? " for #{child.first_name}" : ""}", class: "btn btn-primary" %>
             <% end %>
-            <%= form.submit "Apply with OneKare#{child ? " for #{child.first_name}" : ""}", class: "btn btn-primary" %>
+            <p class="muted small" style="margin:8px 0 0">Clicking submits this application to the provider. There is no second approval screen.</p>
+            <% if existing_application&.status == "submission_failed" %>
+              <p class="muted small">The previous attempt stopped before final submission. Clicking again starts a new attempt.</p>
+            <% end %>
           <% end %>
-          <p class="muted small" style="margin:8px 0 0">Prepares the YMCA application and stops at Review without submitting.</p>
         <% elsif @daycare.beyond_care_experiment_available? %>
-          <%= form_with url: daycare_beyond_care_experiment_path(@daycare), method: :post do |form| %>
-            <% if child %>
-              <%= form.hidden_field :child_id, value: child.id %>
-            <% else %>
-              <%= form.label :child_id, "Child" %>
-              <%= form.select :child_id,
-                onekare_user.children.order(:first_name, :last_name).map { |candidate| [ candidate.full_name, candidate.id ] },
-                { prompt: "Choose a child" }, required: true %>
-            <% end %>
-            <%= form.submit "Apply with OneKare#{child ? " for #{child.first_name}" : ""}", class: "btn btn-primary" %>
-          <% end %>
-          <p class="muted small" style="margin:8px 0 0">Fills the Beyond Care application and stops without submitting.</p>
+          <p class="muted small" style="margin:8px 0 0">Beyond Care applications are not enabled yet.</p>
         <% elsif @daycare.parkcrest_enabled? %>
           <% existing_application = child && child.daycare_applications.find_by(daycare: @daycare) %>
           <% if existing_application %>

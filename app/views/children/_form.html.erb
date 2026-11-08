@@ -4,8 +4,12 @@
   <% end %>
   <%= form_with model: child do |form| %>
     <div class="field">
-      <%= form.label :full_name, "Full name" %>
-      <%= form.text_field :full_name, required: true, autofocus: true, autocomplete: "off", maxlength: 100 %>
+      <%= form.label :first_name, "First name" %>
+      <%= form.text_field :first_name, required: true, autofocus: true, autocomplete: "given-name", maxlength: 100 %>
+    </div>
+    <div class="field">
+      <%= form.label :last_name, "Last name" %>
+      <%= form.text_field :last_name, required: true, autocomplete: "family-name", maxlength: 100 %>
     </div>
     <div class="field">
       <%= form.label :date_of_birth, "Date of birth" %>

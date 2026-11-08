@@ -1,0 +1,7 @@
+<% content_for :title, "Edit #{@child.first_name}’s profile — OneKare" %>
+<%= link_to "← #{@child.first_name}’s profile", kid_path(@child.id), class: "back-link" %>
+<div class="page-head">
+  <div><h1><%= @child.first_name %>’s profile</h1><p>Save progress anytime and come back later.</p></div>
+  <%= render "shared/progress", percent: @child.complete %>
+</div>
+<%= render "kids/form", section: @section, child: @child, url: kid_path(@child.id), method: :patch %>

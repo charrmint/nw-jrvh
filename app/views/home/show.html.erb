@@ -1,0 +1,39 @@
+<% content_for :title, "Home — OneKare" %>
+<div class="page-head">
+  <div>
+    <h1>Welcome<%= ", #{user_first_name}" if user_first_name.present? %></h1>
+    <p>Here’s where your daycare applications stand.</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-head"><h2>Current applications</h2><%= link_to "View all", daycare_applications_path %></div>
+  <% if @applications.any? %>
+    <table class="list">
+      <thead><tr><th>Daycare</th><th>Child</th><th>Requested care</th><th>Status</th><th>Updated</th></tr></thead>
+      <tbody>
+        <% @applications.each do |a| %>
+          <tr>
+            <td><%= link_to a[:daycare], daycare_applications_path(open: a[:id]) %></td>
+            <td><%= a[:child] %></td><td><%= a[:care] %></td>
+            <td><span class="badge <%= status_class(a[:status]) %>"><%= a[:status] %></span></td>
+            <td class="muted"><%= a[:updated] %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <div class="empty">No applications yet. Search for daycares to get started.</div>
+  <% end %>
+</div>
+
+<h2 style="margin:32px 0 14px">Quick actions</h2>
+<div class="tile-grid">
+  <%= link_to search_path, class: "tile" do %><h3>Search daycares</h3><p>Find care near you and pick which child you’re searching for.</p><% end %>
+  <% child = @children.first %>
+  <%= link_to (child ? kid_path(child.id) : new_kid_path), class: "tile" do %>
+    <h3><%= child ? "#{child.first_name}’s profile" : "Add a child" %></h3>
+    <p><%= child ? "#{child.complete}% complete — finish it once and reuse it everywhere." : "Create a reusable profile for your child." %></p>
+  <% end %>
+  <%= link_to daycare_applications_path, class: "tile" do %><h3>Applications</h3><p>Track what’s missing, ready to review, or already sent.</p><% end %>
+</div>

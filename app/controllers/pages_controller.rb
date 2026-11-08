@@ -1,6 +1,9 @@
 class PagesController < ApplicationController
-  allow_unauthenticated_access only: :home
+  # Public landing page.
+  allow_unauthenticated_access
 
-  def home
+  def welcome
+    # `authenticated?` resumes the session from the cookie (public pages skip require_authentication).
+    redirect_to home_path if authenticated?
   end
 end

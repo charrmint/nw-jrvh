@@ -1,0 +1,18 @@
+<% content_for :title, "Children — OneKare" %>
+<div class="page-head">
+  <div><h1>Children</h1><p>Reusable profiles you can use for any daycare application.</p></div>
+  <%= link_to "Add a child", new_kid_path, class: "btn btn-primary" %>
+</div>
+<% if @children.any? %>
+  <div class="tile-grid">
+    <% @children.each do |c| %>
+      <%= link_to kid_path(c.id), class: "tile" do %>
+        <h3><%= c.full_name %></h3>
+        <p>Born <%= c.dob %></p>
+        <div style="margin-top:14px"><%= render "shared/progress", percent: c.complete %></div>
+      <% end %>
+    <% end %>
+  </div>
+<% else %>
+  <div class="empty">You haven’t added a child yet.</div>
+<% end %>

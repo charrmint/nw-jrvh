@@ -1,0 +1,59 @@
+<% content_for :title, "#{@child.first_name}’s profile — OneKare" %>
+<div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+  <div class="segmented">
+    <%= link_to "Saved profile", kid_path(@child.id), class: "active" %>
+    <%= link_to "Edit basic info", edit_kid_path(@child.id, section: "identity") %>
+  </div>
+</div>
+
+<%= link_to "← Children", kids_path, class: "back-link" %>
+<div class="page-head">
+  <div><h1><%= @child.first_name %>’s profile</h1><p>Reusable information for daycare applications</p></div>
+  <%= render "shared/progress", percent: @child.complete %>
+</div>
+
+<nav class="tabs" aria-label="Profile sections">
+  <% ProfileSchema::TABS.each do |key, label| %>
+    <%= link_to label, kid_path(@child.id, tab: key), class: ("active" if key == @tab) %>
+  <% end %>
+</nav>
+
+<% if @tab == "overview" %>
+  <div class="grid-2">
+    <% DemoData::OVERVIEW.each do |title, rows| %>
+      <section>
+        <div class="card-head">
+          <h2><%= title %></h2>
+          <%= link_to "Edit", edit_kid_path(@child.id, section: DemoData::OVERVIEW_EDIT[title]) %>
+        </div>
+        <dl class="kv">
+          <% rows.each do |label, value| %>
+            <dt><%= label %>:</dt>
+            <dd class="<%= 'missing' if value.nil? %>"><%= value || (label == "Pronouns" ? "Not provided" : "Missing information") %></dd>
+          <% end %>
+        </dl>
+        <hr class="divider">
+      </section>
+    <% end %>
+  </div>
+<% else %>
+  <% sections = ProfileSchema.for_tab(@tab) %>
+  <div class="grid-2">
+    <% sections.each do |section| %>
+      <section>
+        <div class="card-head">
+          <h2><%= section.title %></h2>
+          <%= link_to "Edit", edit_kid_path(@child.id, section: section.key) %>
+        </div>
+        <% if section.intro %><p class="muted small" style="margin-top:0"><%= section.intro %></p><% end %>
+        <dl class="kv">
+          <% section.fields.reject(&:show_if).first(4).each do |f| %>
+            <dt><%= f.label.truncate(34) %></dt><dd class="missing">Not provided</dd>
+          <% end %>
+        </dl>
+        <p class="muted small"><%= section.fields.size %> questions in this section</p>
+        <hr class="divider">
+      </section>
+    <% end %>
+  </div>
+<% end %>

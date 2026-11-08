@@ -1,0 +1,4 @@
+<% content_for :title, "Add a child — OneKare" %>
+<%= link_to "← Children", kids_path, class: "back-link" %>
+<div class="page-head"><div><h1>Add a child</h1><p>Start with the basics. You can finish the rest later.</p></div></div>
+<%= render "kids/form", section: @section, child: nil, url: kids_path, method: :post %>

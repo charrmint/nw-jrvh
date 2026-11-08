@@ -1,0 +1,66 @@
+<% if application.errors.any? %>
+  <div role="alert">
+    <h2>Please complete the highlighted information</h2>
+    <ul><% application.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul>
+  </div>
+<% end %>
+
+<%= form_with model: application do |form| %>
+  <% if application.new_record? %>
+    <p><%= form.label :child_id, "Child" %><br>
+    <%= form.collection_select :child_id, Current.user.children.left_joins(:general_application).where(general_applications: { id: nil }).order(:full_name), :id, :full_name, { prompt: "Choose a child" }, required: true %></p>
+  <% end %>
+
+  <fieldset>
+    <legend>Child and care</legend>
+    <p>Name and birthdate come from the selected child's profile. <%= link_to "Edit child details", edit_child_path(application.child) if application.child&.persisted? %></p>
+    <p><%= form.label :preferred_start_date, "Preferred start date" %><br><%= form.date_field :preferred_start_date, required: true %></p>
+    <p><%= form.label :preferred_schedule, "Preferred schedule" %><br><%= form.select :preferred_schedule, [["Any available option", "any_available"], ["Full time", "full_time"], ["Part time", "part_time"], ["Before school", "before_school"], ["After school", "after_school"], ["Before and after school", "before_and_after_school"]], { prompt: "Choose a schedule" }, required: true %></p>
+    <p><%= form.label :school_name, "School attended or expected (for school-age care)" %><br><%= form.text_field :school_name %></p>
+    <p><%= form.label :school_catchment, "Which school catchment does the child live in?" %><br><%= form.select :school_catchment, [["Parkcrest", "parkcrest"], ["Aubrey", "aubrey"], ["Cascade Heights or Inman Elementary", "cascade_or_inman"], ["Another catchment", "other"], ["I don't know", "unknown"]], { prompt: "Choose an answer" }, required: true %></p>
+    <p><%= form.label :support_required, "Does the child need support to participate successfully in a program?" %><br><%= form.select :support_required, [["Yes", "yes"], ["No", "no"]], { prompt: "Choose an answer" }, required: true %></p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Primary guardian</legend>
+    <p><%= form.label :parent_first_name, "First name" %><br><%= form.text_field :parent_first_name, required: true %></p>
+    <p><%= form.label :parent_last_name, "Last name" %><br><%= form.text_field :parent_last_name, required: true %></p>
+    <p><%= form.label :parent_email, "Email" %><br><%= form.email_field :parent_email, required: true %></p>
+    <p><%= form.label :parent_phone, "Local telephone number" %><br><%= form.telephone_field :parent_phone, required: true %></p>
+    <p><%= form.label :parent_date_of_birth, "Birthdate" %><br><%= form.date_field :parent_date_of_birth, required: true %></p>
+    <p><%= form.label :mailing_street, "Mailing street" %><br><%= form.text_field :mailing_street, required: true %></p>
+    <p><%= form.label :mailing_city, "Mailing city" %><br><%= form.text_field :mailing_city, required: true %></p>
+    <p><%= form.label :mailing_province, "Mailing province" %><br><%= form.text_field :mailing_province, required: true %></p>
+    <p><%= form.label :mailing_postal_code, "Mailing postal code" %><br><%= form.text_field :mailing_postal_code, required: true %></p>
+    <p><%= form.label :mailing_country, "Mailing country" %><br><%= form.text_field :mailing_country, required: true %></p>
+    <p><%= form.check_box :application_sms_consent %> <%= form.label :application_sms_consent, "I agree to receive OneKare text updates about my applications (optional)" %></p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Second parent or guardian (optional)</legend>
+    <p><%= form.label :second_guardian_name, "Full name" %><br><%= form.text_field :second_guardian_name %></p>
+    <p><%= form.label :second_guardian_email, "Email" %><br><%= form.email_field :second_guardian_email %></p>
+    <p><%= form.label :second_guardian_phone, "Phone" %><br><%= form.telephone_field :second_guardian_phone %></p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Affiliations</legend>
+    <p><%= form.label :affiliations_text, "Organizations you work for, study at, live in, or are affiliated with (optional)" %><br><%= form.text_area :affiliations_text, rows: 3 %></p>
+    <p><%= form.check_box :affiliations_confirmed %> <%= form.label :affiliations_confirmed, "I have reviewed my affiliations, including if none apply" %></p>
+  </fieldset>
+
+  <fieldset>
+    <legend>Categories</legend>
+    <p>Select all that apply. If none apply, leave all choices unchecked and confirm below.</p>
+    <% category_choices = { "Parent works for a child care provider" => "child_care_employee", "Family participates in a young-parent program" => "young_parent_program", "Family participates in a community support program" => "community_support_program", "Child is transferring from another care program" => "transferring_care", "Sibling currently attends child care" => "sibling_current", "Sibling previously attended child care" => "sibling_alumni" } %>
+    <%= hidden_field_tag "general_application[categories][]", "" %>
+    <% category_choices.each do |label, value| %>
+      <p><%= check_box_tag "general_application[categories][]", value, Array(application.categories).include?(value), id: "category_#{value}" %> <%= label_tag "category_#{value}", label %></p>
+    <% end %>
+    <p><%= form.check_box :categories_confirmed %> <%= form.label :categories_confirmed, "I have reviewed these categories, including if none apply" %></p>
+  </fieldset>
+
+  <p><%= form.submit "Save general application" %></p>
+<% end %>
+
+<p><%= link_to "Back to general applications", general_applications_path %></p>

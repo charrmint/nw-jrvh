@@ -7,11 +7,23 @@
 <% end %>
 
 <%= form_with model: child do |form| %>
-  <%= form.label :full_name, "Full name" %><br>
-  <%= form.text_field :full_name, required: true, autofocus: true, autocomplete: "name" %><br>
+  <%= form.label :first_name, "First name" %><br>
+  <%= form.text_field :first_name, required: true, autofocus: true, autocomplete: "given-name" %><br>
+
+  <%= form.label :last_name, "Last name" %><br>
+  <%= form.text_field :last_name, required: true, autocomplete: "family-name" %><br>
 
   <%= form.label :date_of_birth, "Date of birth" %><br>
-  <%= form.date_field :date_of_birth, required: true %><br>
+  <%= form.date_field :date_of_birth %><br>
+
+  <%= form.check_box :birthdate_estimated %>
+  <%= form.label :birthdate_estimated, "This is an estimated birthdate" %><br>
+
+  <%= form.label :expected_due_date, "Expected due date (if unborn)" %><br>
+  <%= form.date_field :expected_due_date %><br>
+
+  <%= form.check_box :birthdate_unknown %>
+  <%= form.label :birthdate_unknown, "I'm adopting or fostering and don't know the child's birthdate yet" %><br>
 
   <%= form.submit %>
 <% end %>

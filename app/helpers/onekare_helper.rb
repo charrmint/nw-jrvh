@@ -3,8 +3,8 @@ module OnekareHelper
   NAV_ITEMS = [
     { key: :home,         label: "Home",         path: :home_path,                  icon: :home },
     { key: :applications, label: "Applications", path: :daycare_applications_path,  icon: :clipboard },
-    { key: :search,       label: "Search",       path: :search_path,                icon: :search },
-    { key: :kids,         label: "Children",     path: :kids_path,                  icon: :face },
+    { key: :search,       label: "Search",       path: :daycares_path,              icon: :search },
+    { key: :kids,         label: "Children",     path: :children_path,              icon: :face },
     { key: :settings,     label: "Settings",     path: :settings_path,              icon: :gear }
   ].freeze
 
@@ -25,8 +25,8 @@ module OnekareHelper
     case key
     when :home         then controller_name == "home"
     when :applications then controller_name == "daycare_applications"
-    when :search       then controller_name == "searches"
-    when :kids         then controller_name == "kids"
+    when :search       then controller_name == "daycares"
+    when :kids         then %w[children profiles].include?(controller_name)
     when :settings     then controller_name == "settings"
     end
   end

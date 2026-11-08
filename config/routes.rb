@@ -16,6 +16,16 @@ Rails.application.routes.draw do
   resource :session, only: %i[ create destroy ]
 
   resources :passwords, param: :token, only: %i[ new create edit update ]
-  resources :children, only: %i[ index new create edit update ]
+
+  # Backend resources
+  resources :children, only: %i[ index new create edit update ] do
+    # Front-end profile pages (tabs + question sections); answers beyond name/DOB are not stored yet
+    resource :profile, only: %i[ show edit update ]
+  end
   resources :daycares, only: %i[ index show ]
+
+  # Front-end-only screens
+  get "home", to: "home#show", as: :home
+  get "settings", to: "settings#show", as: :settings
+  resources :daycare_applications, path: "applications", only: %i[ index show ]
 end

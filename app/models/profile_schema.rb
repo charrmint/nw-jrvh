@@ -28,12 +28,8 @@ module ProfileSchema
     @sections << Section.new(key: key, title: title, tab: tab, intro: intro, repeatable: repeatable, fields: block.call)
   end
 
-  s("identity", "Child identity", "overview", "The basics daycares ask for on every application.") do [
-    f("child.legal_first_name", "What is your child’s legal first name?"),
-    f("child.legal_middle_name", "What is your child’s legal middle name?", hint: "Optional"),
-    f("child.legal_last_name", "What is your child’s legal last name?"),
+  s("identity", "Child identity", "overview", "Name and date of birth are edited under “Edit basic info”. These are the other details daycares ask for.") do [
     f("child.preferred_name", "What name does your child prefer to use?", hint: "Optional"),
-    f("child.date_of_birth", "What is your child’s date of birth?", :date),
     f("child.expected_due_date", "What is the expected due date?", :date, hint: "Only if your child has not been born yet."),
     f("child.sex_for_licensing", "What sex is recorded for licensing purposes?", :single_select, options: [ "Female", "Male", "Another designation", "Prefer not to say" ], sensitive: true, hint: "B.C. licensed providers are required to record this at enrolment."),
     f("child.gender_identity", "How does your child identify their gender?", sensitive: true, hint: "Optional"),
@@ -342,6 +338,12 @@ module ProfileSchema
   SECTIONS = @sections.freeze
 
   def self.sections = SECTIONS
+
+  # Honest completeness: name + date of birth are stored; everything else is not yet.
+  def self.completeness_percent
+    total = SECTIONS.reject(&:repeatable).sum { |sec| sec.fields.reject(&:show_if).size } + 2
+    (2 * 100.0 / total).round
+  end
   def self.find(key) = SECTIONS.find { |s| s.key == key }
   def self.for_tab(tab) = SECTIONS.select { |s| s.tab == tab }
 end

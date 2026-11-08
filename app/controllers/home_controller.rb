@@ -1,6 +1,6 @@
 class HomeController < ApplicationController
   def show
-    @children = DemoData::CHILDREN
-    @applications = DemoData::APPLICATIONS
+    @children = Current.user.children.order(:full_name)
+    @applications = DemoData::APPLICATIONS # placeholder until applications are stored
   end
 end

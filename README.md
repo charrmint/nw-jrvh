@@ -15,6 +15,36 @@ The initial scenarios are YWCA public forms, YMCA authenticated applications usi
 - Databricks Foundation Model APIs for form-field mapping
 - Databricks Lakebase for PostgreSQL storage
 
+## Teammate onboarding
+
+Clone the repository and check out a branch containing the frontend initialization. Generated Rails and Hotwire files are shared through Git once committed and pushed; each teammate installs dependencies and supplies local configuration. Do not run `rails new` or rerun the Hotwire installers after cloning.
+
+### First-time setup
+
+1. Install the Ruby version specified in `.ruby-version`, Bundler, Git and PostgreSQL client libraries using the platform setup below.
+2. From the repository root, run `bundle install` to install the versions in `Gemfile.lock`.
+3. Copy `.env.example` to `.env.development.local` without overwriting an existing local file. Add your authorized Lakebase development connection URL and uncomment `DATABASE_URL`. See [Environment variables](#environment-variables) for macOS and Windows commands.
+4. Run `bin/rails db:prepare`, then `bin/rails server`. On Windows, use `ruby bin/rails db:prepare` and `ruby bin/rails server`.
+5. Open [localhost:3000](http://localhost:3000).
+
+Docker, Node.js, npm and the Python/Playwright dependencies are not required just to work on Rails screens. The Python and Databricks CLI setup sections below are for work on their corresponding integrations. Lakebase supplies the database server; local PostgreSQL client libraries are still needed by the Ruby database driver.
+
+### Everyday development
+
+Start Rails from the repository root:
+
+```bash
+bin/rails server
+```
+
+Use `ruby bin/rails server` on Windows. After pulling changes, run `bundle install` when `Gemfile` or `Gemfile.lock` changes, and `bin/rails db:prepare` when database migrations are added. Restart Rails after changing local environment variables. Database commands must target a development database, never production.
+
+### Shared files versus local files
+
+Commit application code, generated Hotwire files, `Gemfile`, `Gemfile.lock`, documentation and the placeholder-only `.env.example`. Keep real credentials out of committed files.
+
+The repository's `.gitignore` excludes local `.env` files, Rails decryption keys, logs, temporary files, local uploads, Python virtual environments, browser authentication state in `automation/playwright/.auth/`, and installed dependency directories. These files are not distributed when teammates clone the repository. If a future feature needs Rails encrypted credentials, distribute its decryption key through a secure channel rather than Git.
+
 ## macOS setup
 
 The commands below assume Apple Silicon and Homebrew. Intel Macs can use the equivalent Homebrew paths under `/usr/local`.
@@ -158,6 +188,33 @@ On Windows, use `ruby bin/rails db:prepare` and `ruby bin/rails server`. Open ht
 Configure a separate test database before running database tests; never point tests at the development or production database. Use `.env.test.local` for test-specific connection settings, and do not export a development `DATABASE_URL` into the test process. Production receives its environment variables from the deployment environment, not these local files.
 
 Use fictional parent and child data during development and demos. Lakebase credentials may expire; if authentication stops working, update the local URL with fresh credentials and restart Rails.
+
+## Frontend development (Hotwire)
+
+Importmap, Turbo and Stimulus are initialized in this repository. After pulling these files, run `bundle install`, configure the development database as above, and start `bin/rails server` (or `ruby bin/rails server` on Windows). No Node.js, npm install, JavaScript build or separate frontend server is required by the current setup.
+
+Rails serves HTML templates, styles and JavaScript. Importmap tells the browser where JavaScript modules live without a bundling step. Turbo enhances navigation and form interactions, while Stimulus attaches behavior such as dropdowns to HTML elements. The shared layout loads the JavaScript entrypoint, which starts Turbo and registers the Stimulus controllers.
+
+| File or directory | Purpose |
+| --- | --- |
+| `app/views/` | Rails HTML templates and layouts |
+| `app/assets/stylesheets/application.css` | Application styles |
+| `app/javascript/application.js` | JavaScript entrypoint; loads Turbo and Stimulus controllers |
+| `app/javascript/controllers/` | Stimulus controllers for interactive behavior |
+| `config/importmap.rb` | JavaScript module mappings; automatically pins controllers |
+| `app/views/layouts/application.html.erb` | Loads styles and JavaScript through `javascript_importmap_tags` |
+
+Generate a controller with `bin/rails generate stimulus dropdown`, then connect it to HTML using `data-controller="dropdown"`. Use `ruby bin/rails generate stimulus dropdown` on Windows. The generated `hello_controller.js` is an optional starter example; attaching `data-controller="hello"` to an element replaces its text with `Hello World!` as a quick browser check.
+
+The following initialization commands have **already been run**. Teammates should use the generated files rather than rerunning the installers:
+
+```bash
+bin/rails importmap:install
+bin/rails turbo:install
+bin/rails stimulus:install
+```
+
+`bin/importmap audit` runs the JavaScript dependency audit used by CI and requires network access. On Windows, use `ruby bin/importmap audit`.
 
 ## Verify the local toolchain
 

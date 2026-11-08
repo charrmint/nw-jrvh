@@ -37,6 +37,8 @@ module DaycareApplications
         application.update!(status: "submission_failed", last_error: "Provider form could not be completed before submission")
       end
     rescue Automation::Ymca::ExperimentRunner::Error, Automation::BeyondCare::ExperimentRunner::Error => error
+      diagnostic = error.result.slice("error_type", "error_stage", "error_detail")
+      Rails.logger.warn("Browser submission diagnostic application_id=#{application_id} #{diagnostic.inspect}") if diagnostic.present?
       state = error.result["submission_attempted"] == true ? "submission_uncertain" : "submission_failed"
       application&.update!(status: state, last_error: error.message) if application&.status == "sending"
     rescue StandardError => error

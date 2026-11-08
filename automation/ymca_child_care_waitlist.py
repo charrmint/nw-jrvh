@@ -516,7 +516,8 @@ class YmcaChildCareWaitlist:
 
     @staticmethod
     def _portal_date(value: str) -> str:
-        return date.fromisoformat(value).strftime("%b %-d, %Y")
+        parsed = date.fromisoformat(value)
+        return f"{parsed.strftime('%b')} {parsed.day}, {parsed.year}"
 
     @staticmethod
     def _age(value: str) -> int:

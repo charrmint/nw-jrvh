@@ -1,12 +1,12 @@
 # OneKare
 
-OneKare is an AI-assisted daycare application platform. Parents create one profile, and OneKare prepares and submits supported daycare forms and email waitlist requests after parent review and approval.
+OneKare is an AI-assisted daycare application platform. Parents complete a general application, then choose a supported daycare and click **Apply automatically**. OneKare submits the provider form or email request and records the outcome.
 
 ## MVP architecture and scope
 
 See [the architecture and implementation plan](docs/mvp-architecture.md) for the shared automation engine, reusable platform adapters, database-backed provider configuration and delivery milestones.
 
-The current parent-facing work includes a [fixed MVP upfront question contract](docs/mvp-upfront-questions.md), a central general application per child, and Settings for encrypted YMCA portal credentials. After pulling these changes, run `bin/rails db:migrate` against your development database before opening those pages. The daycare-specific review and submission flows are the next development phase.
+The current parent-facing work includes a [fixed MVP upfront question contract](docs/mvp-upfront-questions.md), a central general application per child, and Settings for encrypted YMCA portal credentials. After pulling these changes, run `bin/rails db:migrate` against your development database before opening those pages. The daycare-specific automatic submission flows are the next development phase.
 
 For assigning team work, use the [frontend/backend implementation plan](docs/implementation-plan.md). It defines matching screens, routes, models, service classes, worker contracts, task dependencies and acceptance criteria.
 
@@ -252,5 +252,5 @@ git --version
 - Use fictional family data for the hackathon.
 - Respect daycare website terms and anti-automation controls.
 - Do not bypass CAPTCHAs or access restrictions.
-- Require parent review before any application is submitted.
+- A parent's **Apply automatically** action starts one submission for the selected child and daycare. There is no separate parent review or approval screen in the MVP.
 - Completing a form does not guarantee that a daycare received the application or added the child to an official waitlist.

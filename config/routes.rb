@@ -16,11 +16,6 @@ Rails.application.routes.draw do
   resource :session, only: %i[ create destroy ]
 
   resources :passwords, param: :token, only: %i[ new create edit update ]
-
-  # App screens (front end)
-  get "home", to: "home#show", as: :home
-  get "search", to: "searches#show", as: :search
-  get "settings", to: "settings#show", as: :settings
-  resources :kids, only: %i[index show new create edit update]
-  resources :daycare_applications, path: "applications", only: %i[index show]
+  resources :children, only: %i[ index new create edit update ]
+  resources :daycares, only: %i[ index show ]
 end

@@ -6,6 +6,8 @@ OneKare is an AI-assisted daycare application platform. Parents create one profi
 
 See [the architecture and implementation plan](docs/mvp-architecture.md) for the shared automation engine, reusable platform adapters, database-backed provider configuration and delivery milestones.
 
+For assigning team work, use the [frontend/backend implementation plan](docs/implementation-plan.md). It defines matching screens, routes, models, service classes, worker contracts, task dependencies and acceptance criteria.
+
 The initial scenarios are YWCA public forms, YMCA authenticated applications using securely stored provider credentials, and Parkcrest Child Care Society email-only school-age waitlist requests. Parkcrest ends at **Waitlist request sent**; inbox monitoring and subsequent enrollment are outside the MVP.
 
 ## Technology stack

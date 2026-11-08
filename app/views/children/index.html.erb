@@ -1,0 +1,19 @@
+<h1>Children</h1>
+
+<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+
+<% if @children.any? %>
+  <ul>
+    <% @children.each do |child| %>
+      <li>
+        <%= child.full_name %> — <%= child.date_of_birth.to_fs(:long) %>
+        <%= link_to "Edit", edit_child_path(child) %>
+      </li>
+    <% end %>
+  </ul>
+<% else %>
+  <p>No child profiles yet.</p>
+<% end %>
+
+<%= link_to "Add child", new_child_path %> |
+<%= link_to "Back to home", root_path %>

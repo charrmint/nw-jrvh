@@ -1,0 +1,17 @@
+<% if child.errors.any? %>
+  <ul style="color:red">
+    <% child.errors.full_messages.each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<%= form_with model: child do |form| %>
+  <%= form.label :full_name, "Full name" %><br>
+  <%= form.text_field :full_name, required: true, autofocus: true, autocomplete: "name" %><br>
+
+  <%= form.label :date_of_birth, "Date of birth" %><br>
+  <%= form.date_field :date_of_birth, required: true %><br>
+
+  <%= form.submit %>
+<% end %>

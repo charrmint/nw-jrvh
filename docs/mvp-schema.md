@@ -21,7 +21,6 @@ erDiagram
   USERS ||--o{ PROVIDER_CONNECTIONS : owns
   CHILDREN ||--o| GENERAL_APPLICATIONS : has
   USERS ||--o{ APPLICATIONS : owns
-  USERS ||--o{ CONNECTIONS : saves
   CHILDREN ||--o{ APPLICATIONS : selected_for
   DAYCARES ||--o{ APPLICATIONS : targets
   APPLICATIONS ||--o{ APPLICATION_EVENTS : records
@@ -31,7 +30,7 @@ Every table has `id`; all except `application_events` have `created_at` and `upd
 
 ## users and sessions
 
-The existing identity and contact fields are implemented. The central general application holds the actual upfront answer set. Account registration fields can prefill it, but do not silently replace reviewed answers.
+The existing identity and contact fields are implemented. The central general application holds the actual upfront answer set. Account registration fields can prefill it, but do not silently replace answers supplied in the general application.
 
 | Table | Columns |
 | --- | --- |
@@ -77,9 +76,9 @@ reported_vacancies         JSONB
 vacancy_updated_at
 application_type
 support_status
-integration_settings       JSONB
+integration_settings       JSONB, workflow settings and allowed default policy
 integration_version
-mapping_updated_at
+mapping_updated_at         last live mapping observation time
 mapping_failure_reason
 ```
 
@@ -109,7 +108,7 @@ created_at
 updated_at
 ```
 
-The unique `(user_id, child_id)` index prevents duplicate general applications for the same child. The form asks provider-neutral questions upfront. Provider configuration later selects and translates answers; uncollected provider-specific priority and marketing-SMS answers default to No in the MVP and must appear in the exact submission review. Eligibility answers such as catchment are never defaulted to Yes. A provider form change pauses automation if the existing answer set cannot cover a required non-defaultable field.
+The unique `(user_id, child_id)` index prevents duplicate general applications for the same child. The form asks provider-neutral questions upfront. Each browser application freshly inspects the live provider form. It reuses the current configuration mapping if the field inventory is unchanged, or asks Databricks to update the mapping when the inventory differs. Uncollected provider-specific priority and marketing-SMS answers may default to No in the MVP. Eligibility answers such as catchment are never defaulted to Yes. A form that cannot be mapped stops before submission.
 
 ## applications (proposed per-daycare submissions)
 
@@ -124,10 +123,12 @@ execution_status
 outcome
 outcome_source
 form_data                  JSONB
+form_observation           JSONB, current live questions and choices for browser runs
 prepared_content           JSONB
-mapping_version
-approved_at
-approved_content_digest
+form_fingerprint
+mapping_snapshot            JSONB, configuration mapping used in this run
+apply_requested_at
+apply_request_id            UUID
 operation_id               UUID
 last_error
 archived_at
@@ -135,18 +136,18 @@ archived_at
 
 ```text
 channel: external, onekare_form, onekare_email
-execution_status: draft, ready_for_review, approved, executing, completed, failed, uncertain, needs_parent_input
+execution_status: draft, preparing, needs_parent_verification, executing, completed, failed, uncertain
 outcome: not_submitted, submitted, waitlist_request_sent, waitlisted, offer_received, enrolled, rejected, offer_declined, withdrawn
 outcome_source: automation, parent
 ```
 
-`form_data` is a snapshot of the completed general application and the selected child/daycare at the moment the parent chooses to apply. `prepared_content` is the exact form answer set or email draft shown to the parent. Editing the general application later does not silently alter an existing reviewed submission.
+`form_data` is a snapshot of the completed general application and the selected child/daycare when the parent clicks Apply automatically. `form_observation` records the live questions and choices for browser runs; `mapping_snapshot` records the active configuration mapping used against that observation, and `form_fingerprint` identifies it. `prepared_content` is the exact form answer set or email message sent to the provider. Editing the general application later does not silently alter an existing submission.
 
 Execution status and outcome are separate. For example, a Parkcrest request can be `completed` with outcome `waitlist_request_sent`; it becomes `waitlisted` only when the parent reports confirmation.
 
-## Normalization and review
+## Normalization and execution
 
-The general application form stores stable answer keys and validated choice values. A later daycare submission copies those values, applies the selected provider's saved field mapping, and presents the result for parent approval. The snapshot and mapping version are retained so future edits do not rewrite what was sent.
+The general application form stores stable answer keys and validated choice values. A later browser submission copies those values and inspects the current provider form. If the field inventory matches the saved inventory, it uses the current configuration mapping; if it differs, Databricks generates an updated mapping and the configuration is versioned. The workflow fills the currently observed controls and submits without a separate parent review. Observations and mappings are retained for audit and change comparison; previous form controls never drive a new run.
 
 ## application_events
 
@@ -162,13 +163,13 @@ A connected mailbox remains future work for Parkcrest sending. Its OAuth token s
 
 ## Mappings and automatic updates
 
-`daycares.integration_settings` contains mappings from normalized fields to a provider form or email template. It contains selectors, required fields, transformations, URLs and templates. It never contains credentials or executable scripts.
+`daycares.integration_settings` contains workflow configuration: URLs, platform key, centre identifiers, current field inventory fingerprint and mapping, allowed default-answer policy, capabilities and email templates. Historical mappings are comparison records; stored field selectors are never trusted without fresh discovery. Configuration never contains credentials or executable scripts.
 
-For example, a mapping can connect `parent.full_name` to `input[name='guardian_name']` and `child.date_of_birth` to `input[name='dob']` with a date transformation.
+For example, the current run can map `parent.first_name` and `parent.last_name` to the live guardian-name fields and `child.date_of_birth` to the live birthdate field with a date transformation. Its target controls come from that run's inspection.
 
-If a provider form changes, Databricks may generate a replacement mapping. The system automatically saves it only when every required field is mapped to a present, type-compatible, non-conflicting source value and the allowed domain has not changed. It increments `integration_version`, regenerates `prepared_content`, and clears `approved_at` and `approved_content_digest`. The parent then completes the normal final review again.
+Databricks generates an updated mapping only when a freshly discovered field inventory differs from the saved inventory. Historical inventories reveal added, removed or changed questions and choices. The current form's required dropdowns can receive the agreed defaults drawn from their current choices. The current mapping is used only against controls found in the current run. A changed general application affects the next submission snapshot, not one already sent.
 
-If no complete mapping is available, set the daycare to `needs_validation` or `paused`, save a safe failure reason, and offer the verified external application link. Never submit partial or guessed data.
+If the current form cannot be prepared, stop that application's execution before submission, save a safe failure reason and offer the verified external application link when available. Do not fall back to a historical mapping.
 
 ## Required constraints
 
@@ -180,10 +181,10 @@ If no complete mapping is available, set the daycare to `needs_validation` or `p
 - Service validation confirms the selected child belongs to the application user.
 - Parent outcome changes append an event and never trigger browser or email work.
 - Only automation can set `waitlist_request_sent` or automation-confirmed `submitted`.
-- Before execution, the digest of `prepared_content` must match `approved_content_digest`.
+- One `apply_request_id` identifies the parent's Apply automatically action and prevents duplicate dispatch from repeated clicks.
 
 ## Deferred tables
 
-Add provider/centre/program tables, shared platform configuration, application revisions, approvals, execution attempts, browser sessions, handoff records and outbound-message records only when the MVP proves this lean model insufficient.
+Add provider/centre/program tables, shared platform configuration, application revisions, execution attempts, browser sessions, handoff records and outbound-message records only when the MVP proves this lean model insufficient.
 
 Migration order: existing `children` and `daycares`, then child birthdate options, `general_applications`, `provider_connections`, followed by per-daycare `applications`, `application_events`, and mailbox connections.

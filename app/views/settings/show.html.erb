@@ -25,4 +25,15 @@
   <% end %>
 </section>
 
+<section>
+  <h3>Gmail sending</h3>
+  <p>Connect your own Gmail account so OneKare can send a Parkcrest waitlist request after you click Apply automatically. OneKare requests only permission to send email and cannot read your inbox. Gmail passwords are never collected.</p>
+  <% if @mailbox_connection %>
+    <p><strong>Gmail connected.</strong> Connected <%= time_ago_in_words(@mailbox_connection.connected_at) %> ago.</p>
+    <%= button_to "Disconnect Gmail", gmail_connection_path, method: :delete, data: { turbo_confirm: "Disconnect Gmail from OneKare?" } %>
+  <% else %>
+    <%= link_to "Connect Gmail", connect_gmail_path, class: "btn btn-primary", data: { turbo: false } %>
+  <% end %>
+</section>
+
 <p><%= link_to "Back to home", root_path %></p>

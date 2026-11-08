@@ -4,6 +4,7 @@ class User < ApplicationRecord
   has_many :children, dependent: :destroy
   has_many :general_applications, dependent: :destroy
   has_many :provider_connections, dependent: :destroy
+  has_one :mailbox_connection, dependent: :destroy
 
   normalizes :email_address, with: ->(e) { e.strip.downcase }
   normalizes :full_name, with: ->(n) { n.squish }

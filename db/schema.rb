@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_11_08_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_08_170002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -32,10 +32,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_160000) do
     t.bigint "child_id", null: false
     t.bigint "daycare_id", null: false
     t.string "status", null: false
-    t.datetime "submitted_at", null: false
+    t.datetime "submitted_at"
     t.string "provider_application_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "apply_request_id"
+    t.jsonb "prepared_content", default: {}, null: false
+    t.datetime "sent_at"
+    t.string "last_error"
+    t.index ["apply_request_id"], name: "index_daycare_applications_on_apply_request_id", unique: true
     t.index ["child_id", "daycare_id"], name: "index_daycare_applications_on_child_id_and_daycare_id", unique: true
     t.index ["child_id"], name: "index_daycare_applications_on_child_id"
     t.index ["daycare_id"], name: "index_daycare_applications_on_daycare_id"
@@ -102,6 +107,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_160000) do
     t.index ["provider_key", "workflow_key", "step_key", "external_location_id", "external_program_id"], name: "index_current_integration_mapping_versions_on_scope", unique: true, where: "current", nulls_not_distinct: true
   end
 
+  create_table "mailbox_connections", force: :cascade do |t|
+    t.bigint "user_id", null: false
+    t.text "encrypted_access_token", null: false
+    t.text "encrypted_refresh_token", null: false
+    t.datetime "access_token_expires_at", null: false
+    t.string "scope", null: false
+    t.datetime "connected_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["user_id"], name: "index_mailbox_connections_on_user_id", unique: true
+  end
+
   create_table "provider_connections", force: :cascade do |t|
     t.bigint "user_id", null: false
     t.string "provider_key", null: false
@@ -137,6 +154,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_11_08_160000) do
   add_foreign_key "daycare_applications", "daycares"
   add_foreign_key "general_applications", "children"
   add_foreign_key "general_applications", "users"
+  add_foreign_key "mailbox_connections", "users"
   add_foreign_key "provider_connections", "users"
   add_foreign_key "sessions", "users"
 end

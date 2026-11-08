@@ -97,6 +97,7 @@ async def run(request: dict[str, Any]) -> dict[str, Any]:
         result["error_type"] = type(error).__name__
         result["error_stage"] = stage
         result["error_detail"] = adapter.safe_stage if adapter else None
+        result["error_controls"] = adapter.safe_diagnostic if adapter else None
         frame = traceback.extract_tb(error.__traceback__)[-1]
         result["error_location"] = {
             "file": os.path.basename(frame.filename),

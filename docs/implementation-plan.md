@@ -147,6 +147,20 @@ Poll the application's authenticated Turbo Frame every few seconds only while wo
 - Status presenter: `execution_state`, `outcome`, `label`, `source_label`, `updated_at`, `allowed_actions`, `uncertainty_message`. All cards and detail pages use it; do not independently derive status text in JavaScript.
 - Outcome form: `outcome`, optional `note`, and optimistic lock version. Parent-supplied source/actor fields are ignored; the server sets them.
 
+### Authentication contract (implemented)
+
+The views in `app/views/sessions/`, `app/views/passwords/`, `app/views/registrations/` and `app/views/pages/home.html.erb` are temporary, unstyled forms for manual testing. The designed login/signup pages will replace them; keep these routes and field names unchanged.
+
+| Action | Route | Fields |
+| --- | --- | --- |
+| Signup form / submit | `GET /sign-up`, `POST /registrations` | `user[full_name]`, `user[email_address]`, `user[phone_number]`, `user[password]`, `user[password_confirmation]` |
+| Login form / submit | `GET /login`, `POST /session` | `email_address`, `password` |
+| Logout | `DELETE /session` | none |
+| Reset request | `GET /passwords/new`, `POST /passwords` | `email_address` |
+| Reset | `GET /passwords/:token/edit`, `PATCH /passwords/:token` | `password`, `password_confirmation` |
+
+Successful submissions redirect with 303. Invalid signup and reset submissions re-render with 422 and keep the entered values; signup errors come from `@user.errors`. Messages use the `notice` and `alert` flash keys. Login failures and reset requests show the same message whether or not the email exists. Every other route requires login unless its controller calls `allow_unauthenticated_access`. Phone numbers are stored as 10 digits; passwords need at least 12 characters.
+
 ## 3. Schema contract and invariants
 
 Use normal foreign keys, timestamps and indexes. JSONB is appropriate for versioned mappings and answer snapshots, not a substitute for ownership relations. Authentication scaffold may use its conventional field names; presenters expose the agreed UI names.

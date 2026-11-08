@@ -39,6 +39,23 @@ class Daycare < ApplicationRecord
     ymca_integration_settings.present?
   end
 
+  def beyond_care_integration_settings
+    settings = integration_settings.deep_stringify_keys
+    return unless %w[needs_validation enabled].include?(support_status)
+    return unless settings["provider_key"] == "beyond_care"
+
+    settings
+  end
+
+  def beyond_care_enabled?
+    support_status == "enabled" && beyond_care_integration_settings.present? &&
+      beyond_care_integration_settings["submit_enabled"] == true
+  end
+
+  def beyond_care_experiment_available?
+    beyond_care_integration_settings.present?
+  end
+
   def self.search(name: nil, city: nil, postal_code: nil)
     result = all
     result = result.where("name ILIKE ?", "%#{sanitize_sql_like(name.strip)}%") if name.present?

@@ -1,0 +1,15 @@
+provider_key: beyond_care
+workflow_key: public_waitlist
+start_url: https://bcchildcentre.ca/wait-list
+experiment_submit_enabled: false
+allowed_defaults: {}
+live_validation:
+  observed_on: "2026-11-08"
+  facility:
+    source_facility_id: "415"
+    database_id: 5406
+    name: Beyond Care Child Centre
+  stages:
+    - waitlist
+  conditional_controls:
+    - children.additional

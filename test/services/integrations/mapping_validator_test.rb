@@ -76,4 +76,24 @@ class Integrations::MappingValidatorTest < ActiveSupport::TestCase
     )
     assert_equal 2, result.warnings.size
   end
+
+  test "adds deterministic Beyond Care transforms after validating the live fields" do
+    result = Integrations::MappingValidator.new(
+      inventory: {
+        fields: [
+          { key: "child.age_category", type: "radio", choices: %w[toddler preschool] },
+          { key: "child.extra_needs", type: "textarea" }
+        ]
+      },
+      canonical_catalog: %w[child.date_of_birth child.support_required]
+    ).call(mappings: {})
+
+    assert_equal(
+      {
+        "child.age_category" => "child.date_of_birth",
+        "child.extra_needs" => "child.support_required"
+      },
+      result.mapping
+    )
+  end
 end

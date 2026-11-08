@@ -6,8 +6,14 @@ class GeneralApplicationsController < ApplicationController
   end
 
   def new
+    child = Current.user.children.find_by(id: params[:child_id])
+    if child&.general_application
+      redirect_to edit_general_application_path(child.general_application)
+      return
+    end
+
     @application = Current.user.general_applications.build
-    @application.child = Current.user.children.find_by(id: params[:child_id])
+    @application.child = child
     if (previous = Current.user.general_applications.order(updated_at: :desc).first)
       %w[parent_first_name parent_last_name parent_email parent_phone parent_date_of_birth mailing_street mailing_city mailing_province mailing_postal_code mailing_country second_guardian_name second_guardian_email second_guardian_phone application_sms_consent affiliations_text affiliations_confirmed].each do |key|
         @application.public_send("#{key}=", previous.public_send(key))

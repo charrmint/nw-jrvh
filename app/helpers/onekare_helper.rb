@@ -4,7 +4,7 @@ module OnekareHelper
     { key: :home,         label: "Home",         path: :home_path,                  icon: :home },
     { key: :applications, label: "Applications", path: :daycare_applications_path,  icon: :clipboard },
     { key: :search,       label: "Search",       path: :daycares_path,              icon: :search },
-    { key: :kids,         label: "Children",     path: :children_path,              icon: :face },
+    { key: :kids,         label: "Children",     path: :fill_in_info_path,           icon: :face },
     { key: :settings,     label: "Settings",     path: :settings_path,              icon: :gear }
   ].freeze
 
@@ -26,7 +26,7 @@ module OnekareHelper
     when :home         then controller_name == "home"
     when :applications then controller_name == "daycare_applications"
     when :search       then controller_name == "daycares"
-    when :kids         then %w[children profiles].include?(controller_name)
+    when :kids         then %w[general_applications children].include?(controller_name)
     when :settings     then controller_name == "settings"
     end
   end
@@ -48,6 +48,9 @@ module OnekareHelper
   def user_initials
     onekare_user&.full_name.to_s.split.first(2).map { |p| p[0].upcase }.join.presence || "?"
   end
+
+  # Sidebar button and "Child information" tile open the children list; each child links on to the info form.
+  def fill_in_info_path = children_path
 
   def login_target  = login_path
   def signup_target = sign_up_path

@@ -21,7 +21,7 @@
 
 <% if @tab == "overview" %>
   <% cards = [
-    [ "Basic information", edit_child_path(@child), [ [ "Full name", @child.full_name ], [ "Date of birth", @child.date_of_birth.to_fs(:long) ], [ "Pronouns", nil ] ] ],
+    [ "Basic information", edit_child_path(@child), [ [ "Full name", @child.full_name ], [ "Date of birth", @child.date_of_birth&.to_fs(:long) ], [ "Pronouns", nil ] ] ],
     [ "Care preferences", edit_child_profile_path(@child, section: "care"), [ [ "Care type", nil ], [ "Start date", nil ], [ "Schedule", nil ], [ "Hours", nil ] ] ],
     [ "Health and safety", edit_child_profile_path(@child, section: "health_contacts"), [ [ "Allergies", nil ], [ "Medication", nil ], [ "Immunization", nil ], [ "Doctor", nil ] ] ],
     [ "Food and feeding", edit_child_profile_path(@child, section: "feeding"), [ [ "Dietary needs", nil ], [ "Food sensitivities", nil ], [ "Feeding support", nil ], [ "Favourite foods", nil ] ] ]

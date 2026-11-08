@@ -19,16 +19,15 @@ Rails.application.routes.draw do
 
   # Backend resources
   resources :children, only: %i[ index new create edit update ] do
-    # Front-end profile pages (tabs + question sections); answers beyond name/DOB are not stored yet
+    # Reusable child profile screens (ProfilesController)
     resource :profile, only: %i[ show edit update ]
   end
+  resources :general_applications, only: %i[ index new create edit update ]
+  resource :ymca_connection, only: %i[ create update destroy ]
   resources :daycares, only: %i[ index show ]
 
   # Front-end-only screens
   get "home", to: "home#show", as: :home
   get "settings", to: "settings#show", as: :settings
   resources :daycare_applications, path: "applications", only: %i[ index show ]
-  resources :general_applications, except: %i[ show destroy ]
-  resource :settings, only: :show
-  resource :ymca_connection, only: %i[ create update destroy ]
 end

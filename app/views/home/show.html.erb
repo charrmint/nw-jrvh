@@ -30,10 +30,9 @@
 <h2 style="margin:32px 0 14px">Quick actions</h2>
 <div class="tile-grid">
   <%= link_to daycares_path, class: "tile" do %><h3>Search daycares</h3><p>Find care near you and pick which child you’re searching for.</p><% end %>
-  <% child = @children.first %>
-  <%= link_to (child ? child_profile_path(child) : new_child_path), class: "tile" do %>
-    <h3><%= child ? "#{child.full_name.split.first}’s profile" : "Add a child" %></h3>
-    <p><%= child ? "Finish it once and reuse it everywhere." : "Create a reusable profile for your child." %></p>
+  <%= link_to fill_in_info_path, class: "tile" do %>
+    <h3>Child information</h3>
+    <p>Fill in your child’s details once and reuse them for every application.</p>
   <% end %>
   <%= link_to daycare_applications_path, class: "tile" do %><h3>Applications</h3><p>Track what’s missing, ready to review, or already sent.</p><% end %>
 </div>

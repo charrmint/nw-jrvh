@@ -1,0 +1,33 @@
+<h1>Create your account</h1>
+
+<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
+
+<% if @user.errors.any? %>
+  <ul style="color:red">
+    <% @user.errors.full_messages.each do |message| %>
+      <li><%= message %></li>
+    <% end %>
+  </ul>
+<% end %>
+
+<%= form_with model: @user, url: registrations_path do |form| %>
+  <%= form.label :full_name, "Full name" %><br>
+  <%= form.text_field :full_name, required: true, autofocus: true, autocomplete: "name" %><br>
+
+  <%= form.label :email_address, "Email address" %><br>
+  <%= form.email_field :email_address, required: true, autocomplete: "email" %><br>
+
+  <%= form.label :phone_number, "Phone number" %><br>
+  <%= form.telephone_field :phone_number, required: true, autocomplete: "tel" %><br>
+
+  <%= form.label :password %><br>
+  <%= form.password_field :password, required: true, autocomplete: "new-password", minlength: 12, maxlength: 72 %><br>
+
+  <%= form.label :password_confirmation, "Confirm password" %><br>
+  <%= form.password_field :password_confirmation, required: true, autocomplete: "new-password", maxlength: 72 %><br>
+
+  <%= form.submit "Sign up" %>
+<% end %>
+<br>
+
+<%= link_to "Already have an account? Sign in", login_path %>
